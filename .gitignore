@@ -60,3 +60,4 @@ buck-out/
 
 
 *.svg
+package-lock.json
