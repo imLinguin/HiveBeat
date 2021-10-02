@@ -15,7 +15,11 @@ export default function TrendingCard({listProps, style}) {
     <TouchableOpacity
       style={{...styles.wrapper, ...style}}
       onPress={() => {
-        ytm.getVideoData(listProps.item.videoId).then(r => {setNowPlaying(r.data)});
+        ytm.getVideoData(listProps.item.videoId).then(data=>{
+          console.log(data)
+          data.title && setNowPlaying(data);
+        });
+        
       }}>
       <Image
         source={{uri: listProps.item.videoThumbnails[0].url}}

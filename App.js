@@ -6,7 +6,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Main from './screens/Main';
 import {videoContext} from './context';
 import {StatusBar} from 'react-native';
-import Player from './components/Player';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 const App = () => {
@@ -24,11 +23,11 @@ const App = () => {
         nowPlaying,
         setNowPlaying,
       }}>
-      <GestureHandlerRootView style={{flex:1}}>
+      <GestureHandlerRootView style={{flex: 1}}>
         <StatusBar translucent backgroundColor="#0000" />
-          <NavigationContainer>
-            <Main />
-          </NavigationContainer>
+        <NavigationContainer>
+          <Main />
+        </NavigationContainer>
       </GestureHandlerRootView>
     </videoContext.Provider>
   );
