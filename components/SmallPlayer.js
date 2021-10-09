@@ -58,7 +58,7 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
               duration={5000}
               repeatSpacer={100}
               marqueeDelay={1500}
-              disabled={!context.minimized}>
+              disabled={!minimized}>
               {context.nowPlaying?.title}
             </TextTicker>
             <Text

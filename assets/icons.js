@@ -11,18 +11,20 @@ import {
 
 export default {
   Home: (
-    <>
+    <Svg fill="none">
       <Path
         d="M46.2914 28.198V60.5715H35.4669V49.999H13.8244V60.5715H3V28.198L25.2194 5.04797L46.2914 28.198Z"
         stroke="#E3AF34"
         strokeWidth="5.73058"
         strokeMiterlimit="10"
+        fill="none"
       />
       <G style="mix-blend-mode:color-dodge" opacity="0.51">
         <Path
           d="M46.3804 28.1978V60.5713H35.556V49.9988H13.9135V60.5713H3.08905V28.1978L25.219 5.04773L46.3804 28.1978Z"
           stroke="url(#paint0_linear)"
           strokeWidth="3.18427"
+          fill="none"
           strokeMiterlimit="10"
         />
       </G>
@@ -38,14 +40,15 @@ export default {
           <Stop offset="1" stopColor="#949146" stopOpacity="0" />
         </LinearGradient>
       </Defs>
-    </>
+    </Svg>
   ),
   Search: (
-    <>
+    <Svg fill="none">
       <Path
         d="M39.4457 41.5031L18.4508 46.3112L3.97516 29.6656L10.5005 8.21049L31.4954 3.40241L45.971 20.048L39.4457 41.5031ZM39.4457 41.5031L50.5 55.6657"
         stroke="#E3AF34"
         strokeWidth="5.69037"
+        fill="none"
         strokeMiterlimit="10"
       />
       <Path
@@ -54,6 +57,7 @@ export default {
         d="M39.8524 41.4179L18.8575 46.226L4.38184 29.5804L10.9072 8.12528L31.902 3.31721L46.3777 19.9628L39.8524 41.4179ZM39.8524 41.4179L48.999 54.0939"
         stroke="url(#paint0_linear)"
         strokeWidth="3.16132"
+        fill="none"
         strokeMiterlimit="10"
       />
       <Defs>
@@ -68,7 +72,7 @@ export default {
           <Stop offset="1" stopColor="#949146" stopOpacity="0" />
         </LinearGradient>
       </Defs>
-    </>
+    </Svg>
   ),
   Playlists: (
     <Svg width="47" height="38">

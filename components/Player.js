@@ -21,6 +21,7 @@ import {videoContext} from '../context';
 import icons from '../assets/icons';
 import scheme from '../assets/scheme';
 import SmallPlayer from './SmallPlayer';
+import Loading from './Loading';
 
 const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
@@ -32,24 +33,14 @@ export default function Player() {
   const context = useContext(videoContext);
   const [minimized, setMinimized] = useState(true);
   const [sliderData, setSlider] = useState({});
-
-  const getURL = () => {
-    // for (let i = 0; i < context.nowPlaying?.formatStreams.length; i++) {
-    //   let item = context.nowPlaying?.formatStreams[i];
-    //   if (
-    //     (item.itag === '18' ||
-    //     item.itag === '140') && item.hasAudio
-    //   ) {
-    //     return item;
-    //   }
-    // }
-    return context.nowPlaying?.formatStreams[0];
-  };
+  const [shouldSliderUpdate, setSliderUpdate] = useState(true);
+  const [isBuffering, setBuffering] = useState(false);
 
   const getReadableTime = seconds => {
+    seconds = Math.round(seconds);
     let minutes = Math.floor(seconds / 60);
-    let outSec = Math.round(seconds - minutes * 60);
-
+    let outSec = Math.round(seconds % 60);
+    if (outSec === 60) outSec = 0;
     outSec = outSec < 10 ? '0' + outSec : outSec;
     return `${minutes}:${outSec}`;
   };
@@ -60,7 +51,7 @@ export default function Player() {
       title: context.nowPlaying.title,
       artwork: context.nowPlaying.thumbnailUrl,
       artist: context.nowPlaying.author,
-      duration: Math.round(context.nowPlaying.lengthSeconds),
+      duration: Number(context.nowPlaying.lengthSeconds),
     });
     MusicControl.updatePlayback({
       state: MusicControl.STATE_BUFFERING,
@@ -105,14 +96,22 @@ export default function Player() {
       });
       MusicControl.on('seek', time => {
         videoRef.current.seek(time);
+        setSlider({...sliderData, currentTime: time});
       });
       MusicControl.enableBackgroundMode(true);
     }
     context.setPaused(false);
+    return MusicControl.resetNowPlaying();
   }, [context.nowPlaying.title]);
 
   useEffect(() => {
     if (context.nowPlaying?.title) {
+      MusicControl.setNowPlaying({
+        title: context.nowPlaying.title,
+        artwork: context.nowPlaying.thumbnailUrl,
+        artist: context.nowPlaying.author,
+        duration: Number(context.nowPlaying.lengthSeconds),
+      });
       MusicControl.updatePlayback({
         state: context.paused
           ? MusicControl.STATE_PAUSED
@@ -124,27 +123,29 @@ export default function Player() {
 
   return (
     <View>
-      {context.nowPlaying.title ? (
+      {context.nowPlaying.url ? (
         <Video
           ref={videoRef}
           onEnd={() => {
             setMinimized(true);
             videoRef.current.seek(0);
+            setSlider({...sliderData, currentTime: 0});
             context.setPaused(true);
           }}
           audioOnly
           paused={context.paused}
           onProgress={data => {
-            setSlider(data);
+            shouldSliderUpdate && setSlider(data);
           }}
           onSeek={t => {
-            setSlider(t);
+            setSlider({currentTime: t.currentTime, ...sliderData});
             MusicControl.updatePlayback({
               elapsedTime: sliderData.currentTime || 0,
             });
           }}
           onLoadStart={onLoadStart}
           onBuffer={data => {
+            setBuffering(data.isBuffering);
             MusicControl.updatePlayback({
               elapsedTime: Math.round(sliderData?.currentTime) || 0,
               state: data.isBuffering
@@ -156,10 +157,14 @@ export default function Player() {
           }}
           playInBackground
           onAudioBecomingNoisy={() => context.setPaused(true)}
-          source={{uri: getURL().url}}
+          source={{uri: context.nowPlaying.url}}
         />
       ) : null}
-      <SmallPlayer sliderData={sliderData} minimized={minimized} setMinimized={setMinimized} />
+      <SmallPlayer
+        sliderData={sliderData}
+        minimized={minimized}
+        setMinimized={setMinimized}
+      />
       {context.nowPlaying?.title ? (
         <Animated.View
           style={{
@@ -184,6 +189,7 @@ export default function Player() {
 
           <PanGestureHandler
             maxPointers={1}
+            enabled={!minimized}
             onGestureEvent={Animated.event(
               [{nativeEvent: {translationY: fullPlayerMov}}],
               {useNativeDriver: false},
@@ -227,6 +233,9 @@ export default function Player() {
                 style={{
                   width: 50,
                   height: 3,
+                  left:'50%',
+                  transform:[{translateX:-25}],
+                  position:'absolute',
                   backgroundColor: 'rgba(255,255,255,0.6)',
                   borderRadius: 10,
                 }}
@@ -246,8 +255,8 @@ export default function Player() {
                 height: 350,
                 width: '90%',
               }}
-              resizeMode={'cover'}
-              borderRadius={20}
+              resizeMode={'contain'}
+              borderRadius={10}
               elevation={1}
               source={{uri: context.nowPlaying.thumbnailUrl}}
             />
@@ -287,7 +296,11 @@ export default function Player() {
                 value={sliderData.currentTime}
                 maximumValue={sliderData.seekableDuration}
                 tapToSeek
+                onSlidingStart={v => {
+                  setSliderUpdate(false);
+                }}
                 onSlidingComplete={v => {
+                  setSliderUpdate(true);
                   setSlider({...sliderData, currentTime: v});
                   videoRef.current.seek(v);
                 }}
@@ -326,10 +339,13 @@ export default function Player() {
                   name="PlayBorder"
                 />
                 <TouchableOpacity
+                  style={{height: 50}}
                   onPress={() => {
                     context.setPaused(!context.paused);
                   }}>
-                  {context.paused ? (
+                  {isBuffering ? (
+                    <Loading style={{width: 55, height: 45}} />
+                  ) : context.paused ? (
                     <Icon
                       width="55"
                       height="50"

@@ -20,30 +20,34 @@ export default function Search({navigation}) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
-  const scrollView = useRef(null)
+  const [showSuggestions, setSuggestionsVisibility] = useState(false);
+  const scrollView = useRef(null);
   const input = useRef(null);
 
   useEffect(() => {
+    ytm.searchSuggestions(inputText).then(r => {
+      setSuggestions(r.data.suggestions);
+    });
     if (inputText.length > 0 && input.current?.isFocused()) {
-      ytm.searchSuggestions(inputText).then(r => {
-        setSuggestions(r.data.suggestions);
-      });
+      setSuggestionsVisibility(true);
     } else {
-      setSuggestions([]);
+      setSuggestionsVisibility(false);
     }
   }, [inputText]);
 
-  const search = () => {
+  const search = (_,value) => {
+    if(!value) value=inputText;
     input.current.blur();
     setLoading(true);
-    setSuggestions([]);
+    setSuggestionsVisibility(false);
     if (inputText.length === 0) {
       return;
     }
-    ytm.search(inputText).then(r => {
+    ytm.search(value).then(r => {
       setResults(r.data);
       setLoading(false);
-      scrollView.current.scrollTo({ x: 0, y: 0, animated: true })
+      setSuggestionsVisibility(false);
+      scrollView.current.scrollTo({x: 0, y: 0, animated: true});
     });
   };
   return (
@@ -56,39 +60,47 @@ export default function Search({navigation}) {
           selectTextOnFocus={true}
           underlineColorAndroid={scheme.colorPrimary}
           onSubmitEditing={search}
-          onChangeText={e => {
-            setText(e);
-          }}
+          onFocus={() => setSuggestionsVisibility(true)}
+          onBlur={() => setSuggestionsVisibility(false)}
+          onChangeText={e=>{setText(e)}}
           placeholderTextColor="rgba(255,255,255,0.6)"
           placeholder="here goes ur fav song name"
           returnKeyType="search"
         />
       </View>
-      <ScrollView ref={scrollView} style={styles.results} contentContainerStyle={{paddingBottom: 210, flexDirection:'row', flexWrap:'wrap', justifyContent:'center'}}>
+      <ScrollView
+        ref={scrollView}
+        style={styles.results}
+        contentContainerStyle={{
+          paddingBottom: 210,
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}>
         {loading === false ? (
-          results.map((e,i) => <SearchResult key={e.videoId} listProps={e}/>)
+          results.map((e, i) => <SearchResult key={e.videoId} listProps={e} />)
         ) : (
           <Loading
             style={{
               alignItems: 'center',
               justifyContent: 'center',
-              flex:1,
+              flex: 1,
               height: Dimensions.get('window').height,
             }}
           />
         )}
       </ScrollView>
-      {suggestions.length > 0 && (
+      {showSuggestions && (
         <View style={styles.suggestions}>
           {suggestions.map((e, i) => (
             <TouchableOpacity
               onPress={() => {
                 setText(e);
-                search();
+                search(null,e);
               }}
               key={i}
-              style={{padding: 3}}>
-              <Text style={{color: '#fff'}}>{e}</Text>
+              style={{padding: 5}}>
+              <Text style={{color: '#fff', fontSize: 15}}>{e}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -116,5 +128,6 @@ const styles = StyleSheet.create({
   },
   results: {
     backgroundColor: scheme.colorBg,
+    height:'100%'
   },
 });

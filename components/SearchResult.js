@@ -5,7 +5,11 @@ import ytm from '../api/ytmusic';
 import {videoContext} from '../context';
 export default function TrendingCard({listProps, style}) {
   const {nowPlaying, setNowPlaying} = React.useContext(videoContext);
-  const isPrimary = listProps.videoId === nowPlaying?.videoId ? scheme.colorPrimary : 'rgba(255,255,255,0.8)'
+  const [isPrimary, setPrimary] = React.useState('rgba(255,255,255,0.8)');
+
+  React.useEffect(()=>{
+    setPrimary(listProps.videoId === nowPlaying?.id ? scheme.colorPrimary : 'rgba(255,255,255,0.8)')
+  },[nowPlaying.id])
   return (
     <TouchableOpacity
       style={{...styles.wrapper, ...style, borderColor: isPrimary}}
@@ -16,7 +20,8 @@ export default function TrendingCard({listProps, style}) {
       }}>
       <Image
         source={{uri: listProps.videoThumbnails[0].url}}
-        style={{width: 150, height: 150, borderRadius: 15}}
+        style={{width: 150, height: 150}}
+        borderRadius={15}
         resizeMode={'cover'}
       />
       <View style={styles.dataWrapper}>

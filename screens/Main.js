@@ -54,8 +54,8 @@ export default function Main() {
           name="Home"
           component={Home}
           options={{
-            tabBarIcon: () => (
-              <Icon height="30" viewBox="0 0 50 64" name="Home" />
+            tabBarIcon: ({focused}) => (
+              <Icon height={focused?"30": "25"} viewBox="0 0 50 64" name="Home" />
             ),
           }}
         />
@@ -63,8 +63,8 @@ export default function Main() {
           name="Search"
           component={Search}
           options={{
-            tabBarIcon: () => (
-              <Icon height="30" viewBox="0 0 54 65" name="Search" />
+            tabBarIcon: ({focused}) => (
+              <Icon height={focused?"30": "25"} viewBox="0 0 54 65" name="Search" />
             ),
           }}
         />
@@ -72,8 +72,8 @@ export default function Main() {
           name="Playlists"
           component={Playlists}
           options={{
-            tabBarIcon: () => (
-              <Icon height="25" viewBox="0 0 47 38" name="Playlists" />
+            tabBarIcon: ({focused}) => (
+              <Icon height={focused?"25": "20"} viewBox="0 0 47 38" name="Playlists" />
             ),
           }}
         />
