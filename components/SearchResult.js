@@ -4,29 +4,47 @@ import scheme from '../assets/scheme';
 import ytm from '../api/ytmusic';
 import {videoContext} from '../context';
 export default function TrendingCard({listProps, style}) {
-  const {nowPlaying, setNowPlaying} = React.useContext(videoContext);
+  const {nowPlaying, setNowPlaying, setVideoQueue, setNowPlayingIndex} =
+    React.useContext(videoContext);
   const [isPrimary, setPrimary] = React.useState('rgba(255,255,255,0.8)');
-
-  React.useEffect(()=>{
-    setPrimary(listProps.videoId === nowPlaying?.id ? scheme.colorPrimary : 'rgba(255,255,255,0.8)')
-  },[nowPlaying.id])
+  const [artistsText, setArtists] = React.useState('');
+  React.useEffect(() => {
+    setPrimary(
+      listProps.youtubeId === nowPlaying?.id
+        ? scheme.colorPrimary
+        : 'rgba(255,255,255,0.8)',
+    );
+    const artists = [];
+    listProps.artists.forEach(el => {
+      artists.push(el.name);
+    });
+    setArtists(artists.join(', '));
+  }, [nowPlaying.id]);
   return (
     <TouchableOpacity
       style={{...styles.wrapper, ...style, borderColor: isPrimary}}
       onPress={() => {
-        ytm.getVideoData(listProps.videoId).then(data=>{
-          data.title && setNowPlaying(data);
+        ytm.getVideoData(listProps.youtubeId).then(data => {
+          let nowPlayingObj = {...listProps, ...data, author: artistsText};
+          ytm.musicSuggestions(listProps.youtubeId).then(dat => {
+            dat[0] = nowPlayingObj;
+            dat.length > 0 && setVideoQueue(dat);
+            data.lengthSeconds && setNowPlaying(nowPlayingObj);
+            setNowPlayingIndex(0);
+      });
         });
       }}>
       <Image
-        source={{uri: listProps.videoThumbnails[0].url}}
+        source={{uri: listProps.thumbnailUrl}}
         style={{width: 150, height: 150}}
         borderRadius={15}
         resizeMode={'cover'}
       />
       <View style={styles.dataWrapper}>
-        <Text style={{...styles.titleText, color: isPrimary}}>{listProps.title}</Text>
-        <Text style={styles.authorText}>{listProps.author}</Text>
+        <Text style={{...styles.titleText, color: isPrimary}}>
+          {listProps.title}
+        </Text>
+        <Text style={styles.authorText}>{artistsText}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -38,7 +56,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     width: '45%',
     paddingTop: 15,
-    margin:5,
+    margin: 5,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
@@ -48,16 +66,16 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     marginVertical: 10,
-    justifyContent:'center'
+    justifyContent: 'center',
   },
   titleText: {
     color: scheme.textColor,
     fontSize: 16,
-    textAlign:'center'
+    textAlign: 'center',
   },
   authorText: {
     color: 'rgba(255,255,255,0.6)',
     fontSize: 14,
-    textAlign:'center'
+    textAlign: 'center',
   },
 });

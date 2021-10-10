@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, TouchableOpacity } from 'react-native';
+import {TouchableOpacity, useWindowDimensions} from 'react-native';
 import {
   createBottomTabNavigator,
   BottomTabBar,
@@ -18,7 +18,7 @@ const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
 export default function Main() {
   const Tab = createBottomTabNavigator();
-
+  const {width, height} = useWindowDimensions();
   return (
     <>
       <Tab.Navigator
@@ -27,12 +27,16 @@ export default function Main() {
           <LinearGradient
             style={{
               position: 'absolute',
-              top: Dimensions.get("window").height - 30,
-              width: '100%',
+              bottom: 0,
+              width,
               height: 110,
               justifyContent: 'flex-end',
             }}
-            colors={['rgba(0, 0, 0, 0)', 'rgba(0,0,0,0.5)', 'rgba(0, 0, 0, 1)']}>
+            colors={[
+              'rgba(0, 0, 0, 0)',
+              'rgba(0,0,0,0.5)',
+              'rgba(0, 0, 0, 1)',
+            ]}>
             <BottomTabBar {...props} />
           </LinearGradient>
         )}
@@ -47,15 +51,19 @@ export default function Main() {
           headerShown: false,
           tabBarShowLabel: true,
           tabBarActiveTintColor: scheme.colorPrimary,
-          tabBarHideOnKeyboard: false,
-          tabBarButton:props=><TouchableOpacity {...props} />
+          tabBarHideOnKeyboard: true,
+          tabBarButton: props => <TouchableOpacity {...props} />,
         })}>
         <Tab.Screen
           name="Home"
           component={Home}
           options={{
             tabBarIcon: ({focused}) => (
-              <Icon height={focused?"30": "25"} viewBox="0 0 50 64" name="Home" />
+              <Icon
+                height={focused ? '30' : '25'}
+                viewBox="0 0 50 64"
+                name="Home"
+              />
             ),
           }}
         />
@@ -64,7 +72,11 @@ export default function Main() {
           component={Search}
           options={{
             tabBarIcon: ({focused}) => (
-              <Icon height={focused?"30": "25"} viewBox="0 0 54 65" name="Search" />
+              <Icon
+                height={focused ? '30' : '25'}
+                viewBox="0 0 54 65"
+                name="Search"
+              />
             ),
           }}
         />
@@ -73,7 +85,11 @@ export default function Main() {
           component={Playlists}
           options={{
             tabBarIcon: ({focused}) => (
-              <Icon height={focused?"25": "20"} viewBox="0 0 47 38" name="Playlists" />
+              <Icon
+                height={focused ? '25' : '20'}
+                viewBox="0 0 47 38"
+                name="Playlists"
+              />
             ),
           }}
         />

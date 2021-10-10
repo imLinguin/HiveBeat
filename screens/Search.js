@@ -7,7 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   ScrollView,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 
 import Loading from '../components/Loading';
@@ -16,6 +16,7 @@ import scheme from '../assets/scheme';
 import SearchResult from '../components/SearchResult';
 
 export default function Search({navigation}) {
+  const {width, height} = useWindowDimensions()
   const [inputText, setText] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,7 +45,7 @@ export default function Search({navigation}) {
       return;
     }
     ytm.search(value).then(r => {
-      setResults(r.data);
+      setResults(r);
       setLoading(false);
       setSuggestionsVisibility(false);
       scrollView.current.scrollTo({x: 0, y: 0, animated: true});
@@ -78,14 +79,14 @@ export default function Search({navigation}) {
           justifyContent: 'center',
         }}>
         {loading === false ? (
-          results.map((e, i) => <SearchResult key={e.videoId} listProps={e} />)
+          results.map((e) => <SearchResult key={e.youtubeId} listProps={e} />)
         ) : (
           <Loading
             style={{
               alignItems: 'center',
               justifyContent: 'center',
               flex: 1,
-              height: Dimensions.get('window').height,
+              height: height,
             }}
           />
         )}

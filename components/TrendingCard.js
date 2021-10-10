@@ -16,7 +16,6 @@ export default function TrendingCard({listProps, style}) {
       style={{...styles.wrapper, ...style}}
       onPress={() => {
         ytm.getVideoData(listProps.item.videoId).then(data=>{
-          console.log(data)
           data.title && setNowPlaying(data);
         });
         

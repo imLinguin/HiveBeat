@@ -11,11 +11,14 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 const App = () => {
   const Stack = createNativeStackNavigator();
   const [videoQueue, setVideoQueue] = useState([]);
+  const [nowPlayingIndex, setNowPlayingIndex] = useState(0)
   const [paused, setPaused] = useState(true);
   const [nowPlaying, setNowPlaying] = useState({});
   return (
     <videoContext.Provider
       value={{
+        nowPlayingIndex,
+        setNowPlayingIndex,
         videoQueue,
         setVideoQueue,
         paused,
