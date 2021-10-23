@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
-
 import {NavigationContainer} from '@react-navigation/native';
-
+import RNBootSplash from 'react-native-bootsplash';
 import Main from './screens/Main';
 import {videoContext} from './context';
 import {StatusBar} from 'react-native';
@@ -10,6 +9,7 @@ const App = () => {
   const [videoQueue, setVideoQueue] = useState([]);
   const [nowPlayingIndex, setNowPlayingIndex] = useState(0);
   const [paused, setPaused] = useState(true);
+  const [shuffle, setShuffle] = useState(true);
   const [nowPlaying, setNowPlaying] = useState({});
   return (
     <videoContext.Provider
@@ -22,8 +22,10 @@ const App = () => {
         setPaused,
         nowPlaying,
         setNowPlaying,
+        shuffle,
+        setShuffle,
       }}>
-      <NavigationContainer>
+      <NavigationContainer onReady={()=>{RNBootSplash.hide({fade:true})}}>
         <GestureHandlerRootView style={{flex: 1}}>
           <StatusBar translucent backgroundColor="#0000" />
           <Main />

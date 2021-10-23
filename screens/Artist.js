@@ -6,69 +6,9 @@ import {FlatList} from 'react-native-gesture-handler';
 import ytmusic from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import Loading from '../components/Loading';
+import Category from '../components/Category';
 
-function AlbumCategory({title, flatListData, style}) {
-  return (
-    <View {...style}>
-      <Text
-        style={{
-          color: scheme.textColor,
-          marginHorizontal: 10,
-          fontSize: 20,
-          fontWeight: '900',
-        }}>
-        {title}
-      </Text>
-      <FlatList
-        data={flatListData}
-        style={{
-          width: '100%',
-          marginVertical: 10,
-          textShadowColor: '#000',
-          textShadowOffset: {width: 0, height: 0},
-          textShadowRadius: 25,
-        }}
-        showsHorizontalScrollIndicator={false}
-        horizontal
-        keyExtractor={item => item.albumId}
-        renderItem={({item}) => <AlbumPreview data={item} />}
-      />
-    </View>
-  );
-}
-
-function ArtistCategory({title, flatListData, style}) {
-  return (
-    <View {...style}>
-      <Text
-        style={{
-          color: scheme.textColor,
-          marginHorizontal: 10,
-          fontSize: 20,
-          fontWeight: '900',
-        }}>
-        {title}
-      </Text>
-      <FlatList
-        data={flatListData}
-        style={{
-          width: '100%',
-          height: 200,
-          marginVertical: 5,
-          textShadowColor: '#000',
-          textShadowOffset: {width: 0, height: 0},
-          textShadowRadius: 25,
-        }}
-        showsHorizontalScrollIndicator={false}
-        horizontal
-        keyExtractor={item => item.artistId}
-        renderItem={({item}) => <ArtistPreview data={item} />}
-      />
-    </View>
-  );
-}
-
-export default function Artist({route, id}) {
+export default function Artist({route, id, navigation}) {
   const [artist, setArtist] = useState(null);
   useEffect(() => {
     if (artist) return;
@@ -90,7 +30,7 @@ export default function Artist({route, id}) {
           opacity: 0.7,
         }}
         resizeMode={'cover'}
-        source={{uri: artist?.thumbnails[1].url}}
+        source={{uri: artist && artist?.thumbnails[1].url}}
       />
       {artist ? (
         <>
@@ -109,25 +49,84 @@ export default function Artist({route, id}) {
             }}>
             {artist?.name}
           </Text>
-          <AlbumCategory title={'Albums'} flatListData={artist?.albums} />
-          <AlbumCategory title={'Singles'} flatListData={artist?.singles} />
-          <ArtistCategory
-            title={'Suggested Artists'}
-            flatListData={artist?.suggestedArtists}
-          />
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: '400',
-              color: scheme.textColor,
-              width: '100%',
-              textShadowColor: '#000',
-              textShadowOffset: {width: 0, height: 0},
-              textShadowRadius: 25,
-              padding: 10,
-            }}>
-            {artist?.description}
-          </Text>
+          <Category title={'Albums'}>
+            <FlatList
+              data={artist?.albums}
+              style={{
+                width: '100%',
+                marginVertical: 10,
+                textShadowColor: '#000',
+                textShadowOffset: {width: 0, height: 0},
+                textShadowRadius: 25,
+              }}
+              showsHorizontalScrollIndicator={false}
+              horizontal
+              keyExtractor={item => item.albumId}
+              renderItem={({item}) => (
+                <AlbumPreview
+                  data={item}
+                  navigation={navigation}
+                  artist={artist}
+                />
+              )}
+            />
+          </Category>
+          <Category title={'Singles'} flatListData={artist?.singles}>
+            <FlatList
+              data={artist?.singles}
+              style={{
+                width: '100%',
+                marginVertical: 10,
+                textShadowColor: '#000',
+                textShadowOffset: {width: 0, height: 0},
+                textShadowRadius: 25,
+              }}
+              showsHorizontalScrollIndicator={false}
+              horizontal
+              keyExtractor={item => item.albumId}
+              renderItem={({item}) => (
+                <AlbumPreview
+                  data={item}
+                  navigation={navigation}
+                  artist={artist}
+                />
+              )}
+            />
+          </Category>
+          <Category title={'Suggested Artists'}>
+            <FlatList
+              data={artist?.suggestedArtists}
+              style={{
+                width: '100%',
+                height: 200,
+                marginVertical: 5,
+                textShadowColor: '#000',
+                textShadowOffset: {width: 0, height: 0},
+                textShadowRadius: 25,
+              }}
+              showsHorizontalScrollIndicator={false}
+              horizontal
+              keyExtractor={item => item.artistId}
+              renderItem={({item}) => (
+                <ArtistPreview data={item} navigation={navigation} />
+              )}
+            />
+          </Category>
+          <Category title={"Description"}>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '400',
+                color: scheme.textColor,
+                width: '100%',
+                textShadowColor: '#000',
+                textShadowOffset: {width: 0, height: 0},
+                textShadowRadius: 25,
+                padding: 10,
+              }}>
+              {artist?.description}
+            </Text>
+          </Category>
         </>
       ) : (
         <Loading />

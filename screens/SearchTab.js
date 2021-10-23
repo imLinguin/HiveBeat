@@ -1,9 +1,10 @@
 import React from 'react';
 import Search from './Search';
 import Artist from './Artist';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import Album from './Album';
+import {createStackNavigator} from '@react-navigation/stack';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 export default function SearchTab() {
   return (
     <Stack.Navigator
@@ -11,6 +12,7 @@ export default function SearchTab() {
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="SearchHome" component={Search} />
       <Stack.Screen name="Artist" component={Artist} />
+      <Stack.Screen name="Album" component={Album} />
     </Stack.Navigator>
   );
 }

@@ -31,7 +31,7 @@ export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
           alignSelf: 'center',
           opacity: isNowPlaying ? 1 : 0.5,
         }}
-        resizeMode={'cover'}
+        resizeMode={'contain'}
         resizeMethod={'scale'}
         borderRadius={15}
         elevation={1}

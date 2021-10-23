@@ -1,10 +1,14 @@
 import React from 'react';
-import {View, Text, Image} from 'react-native';
+import {Text, Image, TouchableOpacity} from 'react-native';
 import scheme from '../assets/scheme';
 
-export default function AlbumPreview({data}) {
+export default function AlbumPreview({data, navigation, artist}) {
   return (
-    <View style={{width: 150, marginHorizontal: 5, alignItems:'center'}}>
+    <TouchableOpacity
+      onPress={e => {
+        navigation.push('Album', {data: data, artist});
+      }}
+      style={{width: 150, marginHorizontal: 5, alignItems: 'center'}}>
       <Image
         source={{uri: data.thumbnailUrl}}
         style={{width: 140, height: 140}}
@@ -19,6 +23,6 @@ export default function AlbumPreview({data}) {
         }}>
         {data.title}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 }

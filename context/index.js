@@ -8,6 +8,8 @@ const videoContext = React.createContext({
   setNowPlaying: () => {},
   paused: false,
   setPaused: () => {},
+  shuffle: false,
+  setShuffle: () => {},
 });
 
 export {videoContext};

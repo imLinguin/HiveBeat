@@ -18,7 +18,7 @@ const getURL = formatStreams => {
     }
   }
   if (best) return best;
-  else formatStreams[0];
+  else return formatStreams[0];
 };
 export default {
   getTrending: () => {
@@ -58,16 +58,27 @@ export default {
     const artist = await youtubemusic.getArtist(id);
     return artist;
   },
+
+  getAlbumSongs: async id =>{
+    const album = await youtubemusic.listMusicsFromAlbum(id);
+    return album
+  },
+
+  manipulateThumbnailUrl: (url, width, height) =>{
+    const newWH = `w${width}-h${height}`
+    url = url.replace(/w\d{3}-h\d{3}/, newWH);
+    return url;
+  },
+
   getVideoData: async id => {
     const data = await ytdl.getInfo(id, {quality:'highestaudio'});
+    const url = getURL(data.formats).url;
+    console.log(url);
     return {
       id,
       lengthSeconds: data.videoDetails.lengthSeconds,
-      thumbnailUrl:
-        data.videoDetails.thumbnails[data.videoDetails.thumbnails.length - 1]
-          .url,
       formatStreams: data.formats,
-      url: getURL(data.formats).url,
+      url,
     };
   },
 };

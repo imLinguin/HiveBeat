@@ -25,6 +25,7 @@ export default function TrendingCard({listProps, style}) {
       style={{...styles.wrapper, ...style, borderColor: isPrimary}}
       onPress={() => {
         ytm.getVideoData(listProps.youtubeId).then(data => {
+          listProps.thumbnailUrl = ytm.manipulateThumbnailUrl(listProps.thumbnailUrl, 544,544);
           let nowPlayingObj = {...listProps, ...data, author: artistsText};
           ytm.musicSuggestions(listProps.youtubeId).then(dat => {
             dat[0] = nowPlayingObj;

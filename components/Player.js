@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  StatusBar,
   Animated,
   BackHandler,
   useWindowDimensions,
   Pressable,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -70,15 +70,6 @@ export default function Player() {
   const nextSong = () => {
     if (!context.videoQueue[context.nowPlayingIndex + 1]) {
       context.setPaused(true);
-      console.log('Loading more songs');
-      ytmusic
-        .musicSuggestions(context.videoQueue[context.nowPlayingIndex].youtubeId)
-        .then(dat => {
-          dat.shift();
-          dat.length > 0 &&
-            context.setVideoQueue([...context.videoQueue, ...dat]);
-          context.setNowPlayingIndex(context.nowPlayingIndex + 1);
-        });
     } else {
       context.setNowPlayingIndex(context.nowPlayingIndex + 1);
     }
@@ -88,7 +79,7 @@ export default function Player() {
       videoRef.current.seek(0);
       setSlider({...sliderData, currentTime: 0});
       context.setPaused(false);
-    } else if (context.nowPlayingIndex != 0){
+    } else if (context.nowPlayingIndex != 0) {
       context.setNowPlayingIndex(context.nowPlayingIndex - 1);
     }
   };
@@ -108,6 +99,10 @@ export default function Player() {
         context.setPaused(false);
       });
     }
+    imageListRef.current?.scrollToOffset({
+      offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
+      animated: true,
+    });
   }, [context.nowPlayingIndex]);
 
   useEffect(() => {
@@ -156,10 +151,6 @@ export default function Player() {
     } else {
       MusicControl.resetNowPlaying();
     }
-    imageListRef.current?.scrollToOffset({
-      offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
-      animated: true,
-    });
     context.setPaused(false);
   }, [context.nowPlaying.title]);
 
@@ -224,23 +215,19 @@ export default function Player() {
       />
       {context.nowPlaying?.title ? (
         <Animated.View
-          style={{
-            ...styles.full_player_wrapper,
-            transform: [{translateY: fullPlayerMov}],
-            opacity: fullPlayerMov.interpolate({
-              inputRange: [0, height],
-              outputRange: [1, 0],
-            }),
-            height,
-          }}>
+          style={[
+            styles.full_player_wrapper,
+            {
+              transform: [{translateY: fullPlayerMov}],
+              opacity: fullPlayerMov.interpolate({
+                inputRange: [0, height],
+                outputRange: [1, 0],
+              }),
+              height: height + StatusBar.currentHeight,
+            },
+          ]}>
           <BlurView
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              top: 0,
-              bottom: 0,
-            }}
+            style={StyleSheet.absoluteFillObject}
             blurType={'dark'}
             blurAmount={15}
           />
@@ -306,7 +293,7 @@ export default function Player() {
               justifyContent: 'center',
               alignItems: 'center',
               flex: 2,
-              height: height,
+              height: '100%',
             }}>
             <View style={{height: IMAGE_SIZE, width: '100%'}}>
               <Animated.FlatList
@@ -317,7 +304,7 @@ export default function Player() {
                   ...context.videoQueue,
                   {spacer: true, youtubeId: '-1'},
                 ]}
-                keyExtractor={item => item.youtubeId + 'carousel'}
+                keyExtractor={item => item.youtubeId + item.title + 'carousel'}
                 horizontal={true}
                 scrollEventThrottle={16}
                 decelerationRate={0.76}
@@ -415,6 +402,9 @@ export default function Player() {
               </View>
             </View>
             <View style={styles.full_player_controls}>
+              <Pressable>
+                <Text style={styles.text}>S</Text>
+              </Pressable>
               <Pressable
                 onPress={() => {
                   previousSong();
@@ -435,7 +425,7 @@ export default function Player() {
                   name="PlayBorder"
                 />
                 <Pressable
-                  style={{height: 50}}
+                  style={{height: 50, width: 55}}
                   onPress={() => {
                     return context.setPaused(!context.paused);
                   }}>
@@ -465,6 +455,9 @@ export default function Player() {
                   nextSong();
                 }}>
                 <Icon width="50" height="50" viewBox="0 0 52 74" name="Skip" />
+              </Pressable>
+              <Pressable>
+                <Text style={styles.text}>L</Text>
               </Pressable>
             </View>
           </View>
