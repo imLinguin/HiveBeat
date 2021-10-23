@@ -8,6 +8,8 @@ import {
   Animated,
   BackHandler,
   useWindowDimensions,
+  Pressable,
+  Dimensions,
 } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -22,6 +24,8 @@ import scheme from '../assets/scheme';
 import ytmusic from '../api/ytmusic';
 import SmallPlayer from './SmallPlayer';
 import Loading from './Loading';
+import PlayerScrollItem from './PlayerScrollItem';
+import {useNavigation} from '@react-navigation/core';
 
 const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
@@ -35,11 +39,14 @@ const getReadableTime = seconds => {
 };
 
 export default function Player() {
+  const navigation = useNavigation();
   const {width, height} = useWindowDimensions();
   const IMAGE_SIZE = width - 70;
   const SPACER_SIZE = (width - IMAGE_SIZE) / 2;
   const videoRef = useRef(null);
-  const fullPlayerMov = useRef(new Animated.Value(height)).current;
+  const fullPlayerMov = useRef(
+    new Animated.Value(Dimensions.get('screen').height),
+  ).current;
   const imageListRef = useRef(null);
   const context = useContext(videoContext);
   const [minimized, setMinimized] = useState(true);
@@ -62,25 +69,27 @@ export default function Player() {
   };
   const nextSong = () => {
     if (!context.videoQueue[context.nowPlayingIndex + 1]) {
-      console.log("Loading more songs")
-      ytmusic.musicSuggestions(listProps.youtubeId).then(dat => {
-        dat.shift()
-        dat.length > 0 &&
-          context.setVideoQueue([...context.videoQueue, ...dat]);
-        context.setNowPlayingIndex(context.nowPlayingIndex + 1);
-      });
+      context.setPaused(true);
+      console.log('Loading more songs');
+      ytmusic
+        .musicSuggestions(context.videoQueue[context.nowPlayingIndex].youtubeId)
+        .then(dat => {
+          dat.shift();
+          dat.length > 0 &&
+            context.setVideoQueue([...context.videoQueue, ...dat]);
+          context.setNowPlayingIndex(context.nowPlayingIndex + 1);
+        });
     } else {
       context.setNowPlayingIndex(context.nowPlayingIndex + 1);
     }
   };
   const previousSong = () => {
-    context.setPaused(true);
-    if (sliderData.currentTime < 10 && context.setNowPlayingIndex != 0)
-      context.setNowPlayingIndex(context.nowPlayingIndex - 1);
-    else {
+    if (sliderData.currentTime > 10) {
       videoRef.current.seek(0);
       setSlider({...sliderData, currentTime: 0});
       context.setPaused(false);
+    } else if (context.nowPlayingIndex != 0){
+      context.setNowPlayingIndex(context.nowPlayingIndex - 1);
     }
   };
   useEffect(() => {
@@ -99,16 +108,11 @@ export default function Player() {
         context.setPaused(false);
       });
     }
-    if (imageListRef.current)
-      imageListRef.current.scrollToOffset({
-        offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
-        animated: true,
-      });
   }, [context.nowPlayingIndex]);
 
   useEffect(() => {
     Animated.spring(fullPlayerMov, {
-      toValue: minimized ? height : 0,
+      toValue: minimized ? Dimensions.get('screen').height : 0,
       duration: 400,
       useNativeDriver: true,
     }).start();
@@ -149,9 +153,14 @@ export default function Player() {
         context.setNowPlayingIndex(context.nowPlayingIndex + 1);
       });
       MusicControl.enableBackgroundMode(true);
+    } else {
+      MusicControl.resetNowPlaying();
     }
+    imageListRef.current?.scrollToOffset({
+      offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
+      animated: true,
+    });
     context.setPaused(false);
-    return MusicControl.resetNowPlaying()
   }, [context.nowPlaying.title]);
 
   useEffect(() => {
@@ -222,6 +231,7 @@ export default function Player() {
               inputRange: [0, height],
               outputRange: [1, 0],
             }),
+            height,
           }}>
           <BlurView
             style={{
@@ -258,7 +268,6 @@ export default function Player() {
             }}>
             <View
               style={{
-                marginTop: StatusBar.currentHeight,
                 flexDirection: 'row',
                 height: 50,
                 marginHorizontal: 20,
@@ -302,7 +311,6 @@ export default function Player() {
             <View style={{height: IMAGE_SIZE, width: '100%'}}>
               <Animated.FlatList
                 ref={imageListRef}
-                scrollEnabled={false}
                 style={{height: IMAGE_SIZE, width: '100%'}}
                 data={[
                   {spacer: true, youtubeId: '-2'},
@@ -312,27 +320,19 @@ export default function Player() {
                 keyExtractor={item => item.youtubeId + 'carousel'}
                 horizontal={true}
                 scrollEventThrottle={16}
+                decelerationRate={0.76}
+                disableIntervalMomentum
                 snapToInterval={IMAGE_SIZE + 10}
-                decelerationRate={-10}
-                bounces={false}
                 showsHorizontalScrollIndicator={false}
                 renderItem={({item, index}) =>
                   item?.thumbnailUrl ? (
-                    <Animated.Image
-                      key={item.youtubeId}
-                      style={{
-                        marginRight: 10,
-                        width: IMAGE_SIZE,
-                        height: IMAGE_SIZE,
-                        alignSelf: 'center',
-                      }}
-                      resizeMode={'cover'}
-                      borderRadius={15}
-                      elevation={1}
-                      source={{uri: item.thumbnailUrl}}
+                    <PlayerScrollItem
+                      data={item}
+                      index={index}
+                      IMAGE_SIZE={IMAGE_SIZE}
                     />
                   ) : (
-                    <View style={{width: SPACER_SIZE, height: 300}} />
+                    <View style={{width: SPACER_SIZE, height: IMAGE_SIZE}} />
                   )
                 }
               />
@@ -342,6 +342,13 @@ export default function Player() {
                 style={styles.full_player_title}
                 scroll
                 loop
+                onPress={() => {
+                  imageListRef.current &&
+                    imageListRef.current.scrollToOffset({
+                      offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
+                      animated: true,
+                    });
+                }}
                 numberOfLines={1}
                 duration={10000}
                 repeatSpacer={150}
@@ -349,15 +356,24 @@ export default function Player() {
                 marqueeDelay={1500}>
                 {context.videoQueue[context.nowPlayingIndex]?.title}
               </TextTicker>
-              <Text
-                style={{
-                  ...styles.text,
-                  fontSize: 17,
-                  paddingBottom: 15,
-                  fontWeight: '100',
+              <TouchableOpacity
+                onPress={() => {
+                  setMinimized(true);
+                  navigation.navigate('Artist', {
+                    id: context.videoQueue[context.nowPlayingIndex].artists[0]
+                      ?.id,
+                  });
                 }}>
-                {context.videoQueue[context.nowPlayingIndex]?.author}
-              </Text>
+                <Text
+                  style={{
+                    ...styles.text,
+                    fontSize: 17,
+                    paddingBottom: 15,
+                    fontWeight: '100',
+                  }}>
+                  {context.videoQueue[context.nowPlayingIndex]?.author}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               style={{
@@ -399,12 +415,12 @@ export default function Player() {
               </View>
             </View>
             <View style={styles.full_player_controls}>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => {
                   previousSong();
                 }}>
                 <Icon width="50" height="50" viewBox="0 0 52 74" name="Back" />
-              </TouchableOpacity>
+              </Pressable>
               <View
                 style={{
                   marginVertical: 30,
@@ -418,10 +434,10 @@ export default function Player() {
                   height="90"
                   name="PlayBorder"
                 />
-                <TouchableOpacity
+                <Pressable
                   style={{height: 50}}
                   onPress={() => {
-                    context.setPaused(!context.paused);
+                    return context.setPaused(!context.paused);
                   }}>
                   {isBuffering ? (
                     <Loading style={{width: 55, height: 45}} />
@@ -442,14 +458,14 @@ export default function Player() {
                       style={{alignSelf: 'center'}}
                     />
                   )}
-                </TouchableOpacity>
+                </Pressable>
               </View>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => {
                   nextSong();
                 }}>
                 <Icon width="50" height="50" viewBox="0 0 52 74" name="Skip" />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </Animated.View>
@@ -470,7 +486,7 @@ const styles = StyleSheet.create({
   full_player_title: {
     fontSize: 30,
     fontWeight: 'bold',
-    paddingVertical: 15,
+    marginVertical: 15,
     color: scheme.textColor,
   },
   metadata_full_wrapper: {

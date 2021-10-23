@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Keyboard,
 } from 'react-native';
 import TextTicker from 'react-native-text-ticker';
 import Slider from '@react-native-community/slider';
@@ -18,14 +19,24 @@ const Icon = props => <SvgIcon {...props} svgs={icons} />;
 export default function SmallPlayer({sliderData, minimized, setMinimized}) {
   const context = useContext(videoContext);
   const showAnimation = useRef(new Animated.Value(0)).current;
-
+  const [isShown, setisShown] = useState(true);
   useEffect(() => {
     Animated.spring(showAnimation, {
-      toValue: (context.nowPlaying?.title && minimized) ? 1 : 0,
+      toValue: (context.nowPlaying?.title && minimized && isShown) ? 1 : 0,
       duration: 400,
       useNativeDriver: true,
     }).start();
-  }, [context.nowPlaying, minimized]);
+
+    const showID = Keyboard.addListener("keyboardDidShow",(e)=>{
+      setisShown(false);
+    });
+    const hideID = Keyboard.addListener("keyboardDidHide",(e)=>{
+      setisShown(true);
+    });
+    return () =>{ showID.remove(), hideID.remove()}
+    
+  }, [context.nowPlaying, minimized, isShown]);
+  
 
   return (
     <Animated.View style={[styles.minimized_player, {opacity: showAnimation, transform:[{translateY: showAnimation.interpolate({inputRange:[0,1], outputRange:[30,0]})}]}]}>

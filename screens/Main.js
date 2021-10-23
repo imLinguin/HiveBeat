@@ -10,14 +10,14 @@ import icons from '../assets/icons';
 
 import Home from './Home';
 import Playlists from './Playlists';
-import Search from './Search';
 import Player from '../components/Player';
 import scheme from '../assets/scheme';
+import SearchTab from './SearchTab';
 
 const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
+const Tab = createBottomTabNavigator();
 export default function Main() {
-  const Tab = createBottomTabNavigator();
   const {width, height} = useWindowDimensions();
   return (
     <>
@@ -69,7 +69,7 @@ export default function Main() {
         />
         <Tab.Screen
           name="Search"
-          component={Search}
+          component={SearchTab}
           options={{
             tabBarIcon: ({focused}) => (
               <Icon

@@ -54,6 +54,10 @@ export default {
     }
     return array
   },
+  getArtistData: async id => {
+    const artist = await youtubemusic.getArtist(id);
+    return artist;
+  },
   getVideoData: async id => {
     const data = await ytdl.getInfo(id, {quality:'highestaudio'});
     return {

@@ -31,7 +31,7 @@ export default function TrendingCard({listProps, style}) {
             dat.length > 0 && setVideoQueue(dat);
             data.lengthSeconds && setNowPlaying(nowPlayingObj);
             setNowPlayingIndex(0);
-      });
+          });
         });
       }}>
       <Image
