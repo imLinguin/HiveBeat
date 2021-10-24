@@ -1,6 +1,7 @@
 import React from 'react';
-import {Text, Image, TouchableOpacity} from 'react-native';
+import {Image, TouchableOpacity} from 'react-native';
 import scheme from '../assets/scheme';
+import CustomText from './CustomText';
 
 export default function AlbumPreview({data, navigation, artist}) {
   return (
@@ -14,7 +15,7 @@ export default function AlbumPreview({data, navigation, artist}) {
         style={{width: 140, height: 140}}
         borderRadius={15}
       />
-      <Text
+      <CustomText
         style={{
           paddingTop: 5,
           color: scheme.textColor,
@@ -22,7 +23,7 @@ export default function AlbumPreview({data, navigation, artist}) {
           textAlign: 'center',
         }}>
         {data.title}
-      </Text>
+      </CustomText>
     </TouchableOpacity>
   );
 }

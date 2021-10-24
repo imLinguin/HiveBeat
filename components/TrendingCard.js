@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Image,
   StyleSheet,
@@ -9,6 +8,7 @@ import {
 import scheme from '../assets/scheme';
 import ytm from '../api/ytmusic';
 import {videoContext} from '../context';
+import CustomText from './CustomText';
 export default function TrendingCard({listProps, style}) {
   const {nowPlaying, setNowPlaying} = React.useContext(videoContext);
   return (
@@ -25,8 +25,8 @@ export default function TrendingCard({listProps, style}) {
         style={{width: 160, height: 90}}
       />
       <View style={styles.dataWrapper}>
-        <Text style={styles.titleText}>{listProps.item.title}</Text>
-        <Text style={styles.authorText}>{listProps.item.author}</Text>
+        <CustomText style={styles.titleText}>{listProps.item.title}</CustomText>
+        <CustomText style={styles.authorText}>{listProps.item.author}</CustomText>
       </View>
     </TouchableOpacity>
   );

@@ -1,7 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   TextInput,
   StyleSheet,
@@ -14,6 +13,7 @@ import Loading from '../components/Loading';
 import ytm from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import SearchResult from '../components/SearchResult';
+import CustomText from '../components/CustomText';
 
 export default function Search({navigation}) {
   const {width, height} = useWindowDimensions()
@@ -79,7 +79,7 @@ export default function Search({navigation}) {
           justifyContent: 'center',
         }}>
         {loading === false ? (
-          results.map((e) => <SearchResult key={e.youtubeId} listProps={e} />)
+          results.map((e,i) => <SearchResult key={`${e.youtubeId} ${i}`} listProps={e} />)
         ) : (
           <Loading
             style={{
@@ -101,7 +101,7 @@ export default function Search({navigation}) {
               }}
               key={i}
               style={{padding: 5}}>
-              <Text style={{color: '#fff', fontSize: 15}}>{e}</Text>
+              <CustomText style={{color: '#fff', fontSize: 15}}>{e}</CustomText>
             </TouchableOpacity>
           ))}
         </View>

@@ -1,8 +1,9 @@
 import React from 'react';
-import {Text, Image} from 'react-native';
+import {Image} from 'react-native';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useNavigation} from '@react-navigation/core';
 import scheme from '../assets/scheme';
+import CustomText from './CustomText';
 
 export default function ArtistPreview({data}) {
   const navigation = useNavigation();
@@ -22,7 +23,7 @@ export default function ArtistPreview({data}) {
         borderRadius={100}
         style={{width: 150, height: 150}}
       />
-      <Text
+      <CustomText
         style={{
           color: scheme.textColor,
           fontWeight: '800',
@@ -30,7 +31,7 @@ export default function ArtistPreview({data}) {
           textAlign: 'center',
         }}>
         {data.name}
-      </Text>
+      </CustomText>
     </TouchableOpacity>
   );
 }

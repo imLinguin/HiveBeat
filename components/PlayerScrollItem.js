@@ -1,8 +1,9 @@
 import React, {useContext, useState} from 'react';
-import {View, Text, Image, Pressable} from 'react-native';
+import {View, Image, Pressable} from 'react-native';
 import {useEffect} from 'react/cjs/react.development';
 import scheme from '../assets/scheme';
 import {videoContext} from '../context';
+import CustomText from './CustomText';
 
 export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
   const context = useContext(videoContext);
@@ -15,7 +16,7 @@ export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
     });
     setArtists(artists.join(', '));
     setIsNowPlaying(index - 1 == context.nowPlayingIndex);
-  }, [context.nowPlayingIndex, context.nowPlaying]);
+  }, [context.nowPlayingIndex, context.nowPlaying, context.paused]);
   return (
     <Pressable
       onPress={e => {
@@ -48,7 +49,7 @@ export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
             bottom: 0,
             position: 'absolute',
           }}>
-          <Text
+          <CustomText
             numberOfLines={4}
             style={{
               color: scheme.textColor,
@@ -61,21 +62,21 @@ export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
               textAlign: 'center',
             }}>
             {data.title}
-          </Text>
-            <Text
-              numberOfLines={2}
-              style={{
-                fontSize: 20,
-                fontWeight: '300',
-                elevation: 2,
-                color: scheme.textColor,
-                textShadowRadius: 10,
-                textShadowColor: '#000',
-                textAlign: 'center',
-                textShadowOffset: {width: 0, height: 0},
-              }}>
-              {artists}
-            </Text>
+          </CustomText>
+          <CustomText
+            numberOfLines={2}
+            style={{
+              fontSize: 20,
+              fontWeight: '300',
+              elevation: 2,
+              color: scheme.textColor,
+              textShadowRadius: 10,
+              textShadowColor: '#000',
+              textAlign: 'center',
+              textShadowOffset: {width: 0, height: 0},
+            }}>
+            {artists}
+          </CustomText>
         </View>
       )}
     </Pressable>

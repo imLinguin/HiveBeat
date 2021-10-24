@@ -1,7 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
   View,
-  Text,
   Animated,
   StyleSheet,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import SvgIcon from 'react-native-svg-icon';
 import {videoContext} from '../context';
 import scheme from '../assets/scheme';
 import icons from '../assets/icons';
+import CustomText from './CustomText';
 const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
 export default function SmallPlayer({sliderData, minimized, setMinimized}) {
@@ -72,7 +72,7 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
               disabled={!minimized}>
               {context.nowPlaying?.title}
             </TextTicker>
-            <Text
+            <CustomText
               style={{
                 color: scheme.textColor,
                 fontSize: 13,
@@ -81,7 +81,7 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
                 marginLeft: 10,
               }}>
               {context.nowPlaying?.author}
-            </Text>
+            </CustomText>
 
             <Slider
               minimumTrackTintColor="#fff"

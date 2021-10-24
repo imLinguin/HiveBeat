@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, Image, StyleSheet} from 'react-native';
+import {View, TouchableOpacity, Image, StyleSheet} from 'react-native';
 import scheme from '../assets/scheme';
 import ytm from '../api/ytmusic';
 import {videoContext} from '../context';
+import CustomText from './CustomText';
 export default function TrendingCard({listProps, style}) {
   const {nowPlaying, setNowPlaying, setVideoQueue, setNowPlayingIndex} =
     React.useContext(videoContext);
@@ -42,10 +43,10 @@ export default function TrendingCard({listProps, style}) {
         resizeMode={'cover'}
       />
       <View style={styles.dataWrapper}>
-        <Text style={{...styles.titleText, color: isPrimary}}>
+        <CustomText style={{...styles.titleText, color: isPrimary}}>
           {listProps.title}
-        </Text>
-        <Text style={styles.authorText}>{artistsText}</Text>
+        </CustomText>
+        <CustomText style={styles.authorText}>{artistsText}</CustomText>
       </View>
     </TouchableOpacity>
   );

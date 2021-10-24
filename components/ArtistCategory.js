@@ -1,11 +1,12 @@
 import React from 'react'
-import { View, Text } from 'react-native'
+import { View } from 'react-native'
 import scheme from '../assets/scheme';
+import CustomText from './CustomText';
 
-export default function Category({style, children, title}) {
+export default function ArtistCategory({style, children, title}) {
     return (
         <View {...style}>
-          <Text
+          <CustomText
             style={{
               color: scheme.textColor,
               marginHorizontal: 10,
@@ -13,7 +14,7 @@ export default function Category({style, children, title}) {
               fontWeight: '900',
             }}>
             {title}
-          </Text>
+          </CustomText>
           {children}
         </View>
     );

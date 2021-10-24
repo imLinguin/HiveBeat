@@ -1,7 +1,6 @@
 import React, {useContext, useRef, useState, useEffect} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
@@ -10,6 +9,7 @@ import {
   Pressable,
   Dimensions,
   StatusBar,
+  ToastAndroid,
 } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -26,6 +26,7 @@ import SmallPlayer from './SmallPlayer';
 import Loading from './Loading';
 import PlayerScrollItem from './PlayerScrollItem';
 import {useNavigation} from '@react-navigation/core';
+import CustomText from './CustomText';
 
 const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
@@ -214,47 +215,49 @@ export default function Player() {
         setMinimized={setMinimized}
       />
       {context.nowPlaying?.title ? (
-        <Animated.View
-          style={[
-            styles.full_player_wrapper,
-            {
-              transform: [{translateY: fullPlayerMov}],
-              opacity: fullPlayerMov.interpolate({
-                inputRange: [0, height],
-                outputRange: [1, 0],
-              }),
-              height: height + StatusBar.currentHeight,
-            },
-          ]}>
-          <BlurView
-            style={StyleSheet.absoluteFillObject}
-            blurType={'dark'}
-            blurAmount={15}
-          />
+        <PanGestureHandler
+          maxPointers={1}
+          enabled={!minimized}
+          minOffsetY={30}
+          onGestureEvent={Animated.event(
+            [{nativeEvent: {translationY: fullPlayerMov}}],
+            {useNativeDriver: true},
+          )}
+          onHandlerStateChange={e => {
+            if (
+              e.nativeEvent.oldState === State.ACTIVE &&
+              e.nativeEvent.translationY > 100
+            ) {
+              setMinimized(true);
+            } else {
+              Animated.spring(fullPlayerMov, {
+                toValue: minimized ? height : 0,
+                duration: 400,
+                useNativeDriver: true,
+              }).start();
+            }
+          }}>
+          <Animated.View
+            style={[
+              styles.full_player_wrapper,
+              {
+                transform: [{translateY: fullPlayerMov}],
+                opacity: fullPlayerMov.interpolate({
+                  inputRange: [0, height],
+                  outputRange: [1, 0],
+                }),
+                height: height + StatusBar.currentHeight,
+              },
+            ]}>
+            <BlurView
+              style={StyleSheet.absoluteFillObject}
+              blurType={'dark'}
+              blurAmount={15}
+            />
 
-          <PanGestureHandler
-            maxPointers={1}
-            enabled={!minimized}
-            onGestureEvent={Animated.event(
-              [{nativeEvent: {translationY: fullPlayerMov}}],
-              {useNativeDriver: false},
-            )}
-            onHandlerStateChange={e => {
-              if (
-                e.nativeEvent.oldState === State.ACTIVE &&
-                e.nativeEvent.translationY > 100
-              ) {
-                setMinimized(true);
-              } else {
-                Animated.spring(fullPlayerMov, {
-                  toValue: minimized ? height : 0,
-                  duration: 400,
-                  useNativeDriver: true,
-                }).start();
-              }
-            }}>
             <View
               style={{
+                marginTop: StatusBar.currentHeight,
                 flexDirection: 'row',
                 height: 50,
                 marginHorizontal: 20,
@@ -264,14 +267,14 @@ export default function Player() {
               <TouchableOpacity
                 style={{height: 20}}
                 onPress={() => setMinimized(true)}>
-                <Text
+                <CustomText
                   style={{
                     ...styles.text,
                     fontSize: 15,
                     fontWeight: '100',
                   }}>
                   \/
-                </Text>
+                </CustomText>
               </TouchableOpacity>
               <View
                 style={{
@@ -286,182 +289,204 @@ export default function Player() {
               />
               <View />
             </View>
-          </PanGestureHandler>
-          <View
-            style={{
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flex: 2,
-              height: '100%',
-            }}>
-            <View style={{height: IMAGE_SIZE, width: '100%'}}>
-              <Animated.FlatList
-                ref={imageListRef}
-                style={{height: IMAGE_SIZE, width: '100%'}}
-                data={[
-                  {spacer: true, youtubeId: '-2'},
-                  ...context.videoQueue,
-                  {spacer: true, youtubeId: '-1'},
-                ]}
-                keyExtractor={item => item.youtubeId + item.title + 'carousel'}
-                horizontal={true}
-                scrollEventThrottle={16}
-                decelerationRate={0.76}
-                disableIntervalMomentum
-                snapToInterval={IMAGE_SIZE + 10}
-                showsHorizontalScrollIndicator={false}
-                renderItem={({item, index}) =>
-                  item?.thumbnailUrl ? (
-                    <PlayerScrollItem
-                      data={item}
-                      index={index}
-                      IMAGE_SIZE={IMAGE_SIZE}
-                    />
-                  ) : (
-                    <View style={{width: SPACER_SIZE, height: IMAGE_SIZE}} />
-                  )
-                }
-              />
-            </View>
-            <View style={styles.metadata_full_wrapper}>
-              <TextTicker
-                style={styles.full_player_title}
-                scroll
-                loop
-                onPress={() => {
-                  imageListRef.current &&
-                    imageListRef.current.scrollToOffset({
-                      offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
-                      animated: true,
-                    });
-                }}
-                numberOfLines={1}
-                duration={10000}
-                repeatSpacer={150}
-                bounce={false}
-                marqueeDelay={1500}>
-                {context.videoQueue[context.nowPlayingIndex]?.title}
-              </TextTicker>
-              <TouchableOpacity
-                onPress={() => {
-                  setMinimized(true);
-                  navigation.navigate('Artist', {
-                    id: context.videoQueue[context.nowPlayingIndex].artists[0]
-                      ?.id,
-                  });
-                }}>
-                <Text
-                  style={{
-                    ...styles.text,
-                    fontSize: 17,
-                    paddingBottom: 15,
-                    fontWeight: '100',
-                  }}>
-                  {context.videoQueue[context.nowPlayingIndex]?.author}
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View
               style={{
-                width: '100%',
                 flexDirection: 'column',
-                alignItems: 'center',
                 justifyContent: 'center',
+                alignItems: 'center',
+                flex: 2,
+                height: '100%',
               }}>
-              <Slider
-                minimumTrackTintColor="#fff"
-                maximumTrackTintColor="#fff"
-                thumbTintColor="#fff"
-                value={sliderData.currentTime}
-                maximumValue={sliderData.seekableDuration}
-                tapToSeek
-                onSlidingStart={v => {
-                  setSliderUpdate(false);
-                }}
-                onSlidingComplete={v => {
-                  setSliderUpdate(true);
-                  setSlider({...sliderData, currentTime: v});
-                  videoRef.current.seek(v);
-                }}
-                style={{width: '100%'}}
-              />
-              <View
-                style={{
-                  width: '90%',
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                <Text style={styles.text}>
-                  {getReadableTime(sliderData.currentTime)}
-                </Text>
-                <Text style={styles.text}>
-                  {getReadableTime(sliderData.seekableDuration)}
-                </Text>
+              <View style={{height: IMAGE_SIZE, width: '100%'}}>
+                <Animated.FlatList
+                  ref={imageListRef}
+                  style={{height: IMAGE_SIZE, width: '100%'}}
+                  data={[
+                    {spacer: true, youtubeId: '-2'},
+                    ...context.videoQueue,
+                    {spacer: true, youtubeId: '-1'},
+                  ]}
+                  keyExtractor={(item) =>
+                    item?.youtubeId + item.title + 'carousel'
+                  }
+                  horizontal={true}
+                  scrollEventThrottle={16}
+                  decelerationRate={0.76}
+                  disableIntervalMomentum
+                  snapToInterval={IMAGE_SIZE + 10}
+                  showsHorizontalScrollIndicator={false}
+                  renderItem={({item, index}) =>
+                    item?.thumbnailUrl ? (
+                      <PlayerScrollItem
+                        data={item}
+                        index={index}
+                        IMAGE_SIZE={IMAGE_SIZE}
+                      />
+                    ) : (
+                      <View style={{width: SPACER_SIZE, height: IMAGE_SIZE}} />
+                    )
+                  }
+                />
               </View>
-            </View>
-            <View style={styles.full_player_controls}>
-              <Pressable>
-                <Text style={styles.text}>S</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  previousSong();
-                }}>
-                <Icon width="50" height="50" viewBox="0 0 52 74" name="Back" />
-              </Pressable>
+              <View style={styles.metadata_full_wrapper}>
+                <TextTicker
+                  style={styles.full_player_title}
+                  scroll
+                  loop
+                  onPress={() => {
+                    imageListRef.current &&
+                      imageListRef.current.scrollToOffset({
+                        offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
+                        animated: true,
+                      });
+                  }}
+                  numberOfLines={1}
+                  duration={10000}
+                  repeatSpacer={150}
+                  bounce={false}
+                  marqueeDelay={1500}>
+                  {context.videoQueue[context.nowPlayingIndex]?.title}
+                </TextTicker>
+                <TouchableOpacity
+                  onPress={() => {
+                    setMinimized(true);
+                    navigation.navigate('Artist', {
+                      id: context.videoQueue[context.nowPlayingIndex].artists[0]
+                        ?.id,
+                    });
+                  }}>
+                  <CustomText
+                    style={{
+                      ...styles.text,
+                      fontSize: 17,
+                      paddingBottom: 15,
+                      fontWeight: '100',
+                    }}>
+                    {context.videoQueue[context.nowPlayingIndex]?.author}
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
               <View
                 style={{
-                  marginVertical: 30,
+                  width: '100%',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexDirection: 'row',
                 }}>
-                <Icon
-                  style={{position: 'absolute', alignSelf: 'center'}}
-                  width="100"
-                  height="90"
-                  name="PlayBorder"
+                <Slider
+                  minimumTrackTintColor="#fff"
+                  maximumTrackTintColor="#fff"
+                  thumbTintColor="#fff"
+                  value={sliderData.currentTime}
+                  maximumValue={sliderData.seekableDuration}
+                  tapToSeek
+                  onSlidingStart={v => {
+                    setSliderUpdate(false);
+                  }}
+                  onSlidingComplete={v => {
+                    setSliderUpdate(true);
+                    setSlider({...sliderData, currentTime: v});
+                    videoRef.current.seek(v);
+                  }}
+                  style={{width: '100%'}}
                 />
-                <Pressable
-                  style={{height: 50, width: 55}}
-                  onPress={() => {
-                    return context.setPaused(!context.paused);
+                <View
+                  style={{
+                    width: '90%',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}>
-                  {isBuffering ? (
-                    <Loading style={{width: 55, height: 45}} />
-                  ) : context.paused ? (
-                    <Icon
-                      width="55"
-                      height="50"
-                      viewBox="0 0 46 60"
-                      name="Play"
-                      style={{alignSelf: 'center'}}
-                    />
-                  ) : (
-                    <Icon
-                      width="50"
-                      height="50"
-                      viewBox="0 0 51 61"
-                      name="Pause"
-                      style={{alignSelf: 'center'}}
-                    />
-                  )}
+                  <CustomText style={styles.text}>
+                    {getReadableTime(sliderData.currentTime)}
+                  </CustomText>
+                  <CustomText style={styles.text}>
+                    {getReadableTime(sliderData.seekableDuration)}
+                  </CustomText>
+                </View>
+              </View>
+              <View style={styles.full_player_controls}>
+                <Pressable
+                  onPress={() => {
+                    const newVal = !context.shuffle;
+                    context.setShuffle(newVal);
+                    ToastAndroid.showWithGravity(
+                      newVal ? 'Shuffle Enabled' : 'Shuffle Disabled',
+                      ToastAndroid.SHORT,
+                      ToastAndroid.CENTER,
+                    );
+                  }}
+                  style={{padding: 5}}>
+                  <CustomText style={styles.text}>S</CustomText>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    previousSong();
+                  }}>
+                  <Icon
+                    width="50"
+                    height="50"
+                    viewBox="0 0 52 74"
+                    name="Back"
+                  />
+                </Pressable>
+                <View
+                  style={{
+                    marginVertical: 30,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                  }}>
+                  <Icon
+                    style={{position: 'absolute', alignSelf: 'center'}}
+                    width="100"
+                    height="90"
+                    name="PlayBorder"
+                  />
+                  <Pressable
+                    style={{height: 50, width: 55}}
+                    onPress={() => {
+                      return context.setPaused(!context.paused);
+                    }}>
+                    {isBuffering ? (
+                      <Loading style={{width: 55, height: 45}} />
+                    ) : context.paused ? (
+                      <Icon
+                        width="55"
+                        height="50"
+                        viewBox="0 0 46 60"
+                        name="Play"
+                        style={{alignSelf: 'center'}}
+                      />
+                    ) : (
+                      <Icon
+                        width="50"
+                        height="50"
+                        viewBox="0 0 51 61"
+                        name="Pause"
+                        style={{alignSelf: 'center'}}
+                      />
+                    )}
+                  </Pressable>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    nextSong();
+                  }}>
+                  <Icon
+                    width="50"
+                    height="50"
+                    viewBox="0 0 52 74"
+                    name="Skip"
+                  />
+                </Pressable>
+                <Pressable>
+                  <CustomText style={styles.text}>L</CustomText>
                 </Pressable>
               </View>
-              <Pressable
-                onPress={() => {
-                  nextSong();
-                }}>
-                <Icon width="50" height="50" viewBox="0 0 52 74" name="Skip" />
-              </Pressable>
-              <Pressable>
-                <Text style={styles.text}>L</Text>
-              </Pressable>
             </View>
-          </View>
-        </Animated.View>
+          </Animated.View>
+        </PanGestureHandler>
       ) : null}
     </View>
   );

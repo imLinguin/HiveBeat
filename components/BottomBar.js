@@ -1,8 +1,7 @@
 import React from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
-import scheme from '../assets/scheme';
-
+import {View, TouchableOpacity} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import CustomText from './CustomText';
 
 export default function BottomBar({state, descriptors, navigation}) {
   return (
@@ -54,7 +53,7 @@ export default function BottomBar({state, descriptors, navigation}) {
             onLongPress={onLongPress}
             style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <LinearGradient colors={['#0000','#0001']}>
-              <Text>{label}</Text>
+              <CustomText>{label}</CustomText>
             </LinearGradient>
           </TouchableOpacity>
         );

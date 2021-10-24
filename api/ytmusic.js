@@ -71,9 +71,8 @@ export default {
   },
 
   getVideoData: async id => {
-    const data = await ytdl.getInfo(id, {quality:'highestaudio'});
+    const data = await ytdl.getInfo(id);
     const url = getURL(data.formats).url;
-    console.log(url);
     return {
       id,
       lengthSeconds: data.videoDetails.lengthSeconds,
@@ -81,4 +80,24 @@ export default {
       url,
     };
   },
+
+  shuffle: (array, id) =>{
+    if (id) {
+      array.splice(id, 1);
+    }
+    let currentIndex = array.length,
+      randomIndex;
+    
+    while (currentIndex != 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex],
+        array[currentIndex],
+      ];
+    }
+
+    return array;
+  }
 };

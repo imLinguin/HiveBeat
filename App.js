@@ -9,7 +9,7 @@ const App = () => {
   const [videoQueue, setVideoQueue] = useState([]);
   const [nowPlayingIndex, setNowPlayingIndex] = useState(0);
   const [paused, setPaused] = useState(true);
-  const [shuffle, setShuffle] = useState(true);
+  const [shuffle, setShuffle] = useState(false);
   const [nowPlaying, setNowPlaying] = useState({});
   return (
     <videoContext.Provider

@@ -1,15 +1,16 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 
 import scheme from '../assets/scheme'
+import CustomText from './CustomText'
 
 export default function Header({navigation}) {
     return(<></>)
     return (
         <View style={styles.wrapper}>
             <View style={{flexDirection:'row'}}>
-                <Text style={{...styles.title, color:scheme.colorPrimary}}>Hive</Text>
-                <Text style={{...styles.title, color:scheme.textColor}}>Beat</Text>
+                <CustomText style={{...styles.title, color:scheme.colorPrimary}}>Hive</CustomText>
+                <CustomText style={{...styles.title, color:scheme.textColor}}>Beat</CustomText>
             </View>
         </View>
     )
