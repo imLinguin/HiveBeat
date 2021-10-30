@@ -1,12 +1,17 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import {View, Image, Pressable} from 'react-native';
 import {useEffect} from 'react/cjs/react.development';
 import scheme from '../assets/scheme';
-import {videoContext} from '../context';
+import useStore from '../context';
+import shallow from 'zustand/shallow';
 import CustomText from './CustomText';
 
 export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
-  const context = useContext(videoContext);
+  const {nowPlayingIndex, nowPlaying, setIndex} = useStore(state=> ({
+    nowPlaying: state.nowPlaying,
+    nowPlayingIndex: state.nowPlayingIndex,
+    setIndex: state.setIndex
+  }), shallow);
   const [isNowPlaying, setIsNowPlaying] = useState(true);
   const [artists, setArtists] = useState('');
   useEffect(() => {
@@ -15,14 +20,14 @@ export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
       el.name && artists.push(el.name);
     });
     setArtists(artists.join(', '));
-    setIsNowPlaying(index - 1 == context.nowPlayingIndex);
-  }, [context.nowPlayingIndex, context.nowPlaying, context.paused]);
+    setIsNowPlaying(index - 1 == nowPlayingIndex);
+  }, [nowPlayingIndex, nowPlaying.id]);
   return (
     <Pressable
       onPress={e => {
         if (isNowPlaying) return;
         const actualId = index - 1;
-        context.setNowPlayingIndex(actualId);
+        setIndex(actualId);
       }}>
       <Image
         style={{

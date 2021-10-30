@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Animated,
@@ -10,19 +10,21 @@ import {
 import TextTicker from 'react-native-text-ticker';
 import Slider from '@react-native-community/slider';
 import SvgIcon from 'react-native-svg-icon';
-import {videoContext} from '../context';
+import useStore from '../context';
 import scheme from '../assets/scheme';
 import icons from '../assets/icons';
 import CustomText from './CustomText';
 const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
 export default function SmallPlayer({sliderData, minimized, setMinimized}) {
-  const context = useContext(videoContext);
+  const nowPlaying = useStore(state=>state.nowPlaying);
+  const paused = useStore(state=>state.paused);
+  const setPaused = useStore(state=>state.setPaused);
   const showAnimation = useRef(new Animated.Value(0)).current;
   const [isShown, setisShown] = useState(true);
   useEffect(() => {
     Animated.spring(showAnimation, {
-      toValue: (context.nowPlaying?.title && minimized && isShown) ? 1 : 0,
+      toValue: (nowPlaying?.title && minimized && isShown) ? 1 : 0,
       duration: 400,
       useNativeDriver: true,
     }).start();
@@ -35,7 +37,7 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
     });
     return () =>{ showID.remove(), hideID.remove()}
     
-  }, [context.nowPlaying, minimized, isShown]);
+  }, [nowPlaying, minimized, isShown]);
   
 
   return (
@@ -52,10 +54,10 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
           setMinimized(false);
         }}>
         <>
-          {context.nowPlaying?.title && (
+          {nowPlaying?.title && (
             <Image
               style={styles.min_image}
-              source={{uri: context.nowPlaying.thumbnailUrl}}
+              source={{uri: nowPlaying.thumbnailUrl}}
             />
           )}
           <View style={styles.metadata_min_wrapper}>
@@ -70,9 +72,10 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
               repeatSpacer={100}
               marqueeDelay={1500}
               disabled={!minimized}>
-              {context.nowPlaying?.title}
+              {nowPlaying?.title}
             </TextTicker>
             <CustomText
+              numberOfLines={1}
               style={{
                 color: scheme.textColor,
                 fontSize: 13,
@@ -80,7 +83,7 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
                 paddingBottom: 5,
                 marginLeft: 10,
               }}>
-              {context.nowPlaying?.author}
+              {nowPlaying?.author}
             </CustomText>
 
             <Slider
@@ -96,14 +99,14 @@ export default function SmallPlayer({sliderData, minimized, setMinimized}) {
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => {
-          context.setPaused(!context.paused);
+          setPaused(!paused);
         }}
         style={{
           alignItems: 'center',
           justifyContent: 'center',
           paddingRight: 5,
         }}>
-        {context.paused ? (
+        {paused ? (
           <Icon width="30" height="100%" viewBox="0 0 46 60" name="Play" />
         ) : (
           <Icon viewBox="0 0 51 61" width="30" height="100%" name="Pause" />

@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -12,84 +12,137 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import SongPreview from '../components/SongPreview';
 import ytmusic from '../api/ytmusic';
 import scheme from '../assets/scheme';
-import {videoContext} from '../context';
+import shallow from 'zustand/shallow';
+import useStore from '../context';
 import CustomText from '../components/CustomText';
 import LinearGradient from 'react-native-linear-gradient';
+import {getColorFromURL} from 'rn-dominant-color';
+import Loading from '../components/Loading';
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
 export default function Album({route}) {
-  const context = useContext(videoContext);
-  const [songs, setSongs] = useState(null);
+  const context = useStore(
+    state => ({
+      setPaused: state.setPaused,
+      setNowPlaying: state.setNowPlaying,
+      setIndex: state.setIndex,
+      setVideoQueue: state.setVideoQueue,
+      shuffle: state.shuffle,
+      nowPlaying: state.nowPlaying,
+    }),
+    shallow,
+  );
+  const [songs, setSongs] = useState([]);
+  const [dominantColor, setDominantColor] = useState('#363636FF');
+  const gradientVisibility = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
   const {width, height} = useWindowDimensions();
   const IMAGE_SIZE = width / 1.6;
   useEffect(() => {
-    if (songs) return;
+    if (songs.length > 0) return;
     ytmusic.getAlbumSongs(route.params.data.albumId).then(albumData => {
       if (albumData) {
         setSongs(albumData);
+        getColorFromURL(route.params.data?.thumbnailUrl).then(v => {
+          setDominantColor(v);
+          Animated.timing(gradientVisibility, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver:true,
+          }).start()
+        });
       }
     });
   }, []);
 
-  const play = (index) => {
-    const v = songs[index]
-    ytmusic.getVideoData(v.youtubeId).then(d => {
-      let newQueue = [];
-      v.thumbnailUrl = ytmusic.manipulateThumbnailUrl(v.thumbnailUrl, 544, 544);
-      const obj = {
-        ...d,
-        ...v,
-        artists: [
-          {
-            name: route.params.artist.name,
-            id: route.params.artist.id,
-          },
-        ],
-        author: route.params.artist.name,
-      };
-      newQueue.push(obj);
-      console.log(context.shuffle);
-      if (context.shuffle) {
-        console.log('Shuffling');
-        const shuffledArray = ytmusic.shuffle(songs.slice(), index);
-        newQueue = [...newQueue, ...shuffledArray];
-      } else {
-        songs.forEach((val, i) => {
-          if (i > index) {
-            val.thumbnailUrl = ytmusic.manipulateThumbnailUrl(
-              val.thumbnailUrl,
-              544,
-              544,
-            );
-            newQueue.push({
-              ...val,
-              artists: [
-                {
-                  name: route.params.artist.name,
-                  id: route.params.artist.id,
-                },
-              ],
-              author: route.params.artist.name,
-            });
-          }
-        });
-      }
-      context.setNowPlaying(obj);
-      context.setVideoQueue(newQueue);
-      context.setNowPlayingIndex(0);
-      context.setPaused(false);
-    });
+  const play = index => {
+    const v = songs[index];
+    context.setPaused(true);
+    if (context.nowPlaying.id !== v.youtubeId)
+      ytmusic.getVideoData(v.youtubeId).then(d => {
+        let newQueue = [];
+        v.thumbnailUrl = ytmusic.manipulateThumbnailUrl(
+          v.thumbnailUrl,
+          544,
+          544,
+        );
+        const obj = {
+          ...d,
+          ...v,
+          artists: [
+            {
+              name: route.params.artist.name,
+              id: route.params.artist.id,
+            },
+          ],
+          author: route.params.artist.name,
+        };
+        newQueue.push(obj);
+        console.log(context.shuffle);
+        if (context.shuffle) {
+          console.log('Shuffling');
+          const shuffledArray = ytmusic.shuffle(songs.slice(), index);
+          newQueue = [...newQueue, ...shuffledArray];
+        } else {
+          songs.forEach((val, i) => {
+            if (i > index) {
+              val.thumbnailUrl = ytmusic.manipulateThumbnailUrl(
+                val.thumbnailUrl,
+                544,
+                544,
+              );
+              newQueue.push({
+                ...val,
+                artists: [
+                  {
+                    name: route.params.artist.name,
+                    id: route.params.artist.id,
+                  },
+                ],
+                author: route.params.artist.name,
+              });
+            }
+          });
+        }
+        context.setNowPlaying(obj);
+        context.setVideoQueue(newQueue);
+        context.setIndex(0);
+        context.setPaused(false);
+      });
   };
 
   return (
-    <View style={{backgroundColor: scheme.colorBg}}>
-      <LinearGradient
-        colors={['#fffC', '#fff0']}
+    <View
+      style={[
+        {backgroundColor: scheme.colorBg},
+        StyleSheet.absoluteFillObject,
+      ]}>
+        <AnimatedLinearGradient
+        colors={[dominantColor?.primary || "#363636", '#fff0']}
         start={{x: 0, y: 0}}
-        end={{x: 0.2, y: 0.25}}
-        style={StyleSheet.absoluteFillObject}
+        end={{x: 0.5, y: 0.5}}
+        style={{
+          top: 0,
+          left: 0,
+          right: 0,
+          height: IMAGE_SIZE * 2,
+          position: 'absolute',
+          opacity: gradientVisibility,
+        }}
+      />
+      <AnimatedLinearGradient
+        colors={[dominantColor?.secondary || "#363636", '#fff0']}
+        start={{x: 1, y: 0}}
+        end={{x: 0.5, y: 0.5}}
+        style={{
+          top: 0,
+          left: 0,
+          right: 0,
+          height: IMAGE_SIZE * 2,
+          position: 'absolute',
+          opacity: gradientVisibility,
+        }}
       />
       <Animated.View
         style={{
@@ -124,6 +177,7 @@ export default function Album({route}) {
             }}
             style={{width: '100%', height: '100%'}}>
             <CustomText
+              numberOfLines={1}
               style={{
                 fontSize: 25,
                 color: scheme.textColor,
@@ -183,15 +237,28 @@ export default function Album({route}) {
           [{nativeEvent: {contentOffset: {y: scrollY}}}],
           {
             useNativeDriver: true,
+            listener: (e)=>{
+                Animated.timing(gradientVisibility, {
+                  toValue: (e.nativeEvent.contentOffset.y > 20) ? 0 : 1,
+                  duration:600,
+                  useNativeDriver:true
+                }).start()
+            }
           },
         )}>
-        {songs?.map((v, i) => (
-          <TouchableOpacity
-            key={`${v.youtubeId}${v.title}albumList`}
-            onPress={e => {play(i)}}>
-            <SongPreview data={v} index={i} />
-          </TouchableOpacity>
-        ))}
+        {songs?.length > 0 ? (
+          songs?.map((v, i) => (
+            <TouchableOpacity
+              key={`${v.youtubeId}${v.title}albumList`}
+              onPress={e => {
+                play(i);
+              }}>
+              <SongPreview data={v} index={i} />
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Loading />
+        )}
       </Animated.ScrollView>
     </View>
   );

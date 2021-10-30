@@ -7,10 +7,10 @@ import {
 } from 'react-native';
 import scheme from '../assets/scheme';
 import ytm from '../api/ytmusic';
-import {videoContext} from '../context';
+import useStore from '../context';
 import CustomText from './CustomText';
 export default function TrendingCard({listProps, style}) {
-  const {nowPlaying, setNowPlaying} = React.useContext(videoContext);
+  const setNowPlaying = useStore(state=>state.setNowPlaying);
   return (
     <TouchableOpacity
       style={{...styles.wrapper, ...style}}

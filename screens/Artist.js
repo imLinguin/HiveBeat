@@ -2,21 +2,39 @@ import React, {useEffect, useState} from 'react';
 import {Image, ScrollView, StatusBar, View} from 'react-native';
 import AlbumPreview from '../components/AlbumPreview';
 import ArtistPreview from '../components/ArtistPreview';
-import {FlatList} from 'react-native-gesture-handler';
+import SongPreview from '../components/SongPreview';
+import {FlatList, TouchableOpacity} from 'react-native-gesture-handler';
 import ytmusic from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import Loading from '../components/Loading';
 import ArtistCategory from '../components/ArtistCategory';
 import LinearGradient from 'react-native-linear-gradient';
 import CustomText from '../components/CustomText';
+import shallow from 'zustand/shallow';
+import { getColorFromURL } from 'rn-dominant-color'; 
+import useStore from '../context';
 
 export default function Artist({route, id, navigation}) {
+  const {setPaused, setNowPlaying, setVideoQueue, nowPlaying, setIndex} = useStore(state => ({
+    setPaused: state.setPaused,
+    setIndex: state.setIndex,
+    setNowPlaying: state.setNowPlaying,
+    setVideoQueue: state.setVideoQueue,
+    nowPlaying: state.nowPlaying
+  }), shallow)
   const [artist, setArtist] = useState(null);
+  const [dominantColor, setDominantColor] = useState("#363636FF");
   useEffect(() => {
     if (artist) return;
     ytmusic.getArtistData(route.params.id).then(artistData => {
       if (artistData) {
+        artistData.thumbnailUrl = ytmusic.manipulateThumbnailUrl(artistData?.thumbnails[0].url, 500,500);
         setArtist(artistData);
+        getColorFromURL(artistData.thumbnailUrl).then((v)=>{
+          if(v) {
+            setDominantColor(v.primary);
+          }
+        })
       }
     });
   }, []);
@@ -27,15 +45,24 @@ export default function Artist({route, id, navigation}) {
       <View>
         <Image
           style={{
-            marginTop: StatusBar.currentHeight,
             width: '100%',
-            height: 225,
+            height: 300,
             opacity: 0.7,
           }}
           resizeMode={'cover'}
-          source={{uri: artist && artist?.thumbnails[1].url}}
+          source={{uri: artist && artist.thumbnailUrl}}
         />
-        <LinearGradient colors={["#36363600", "#363636FF"]} end={{x:0.5, y:1}} style={{position:'absolute', width:'100%', height:225, top:StatusBar.currentHeight}}/>
+        <LinearGradient
+          colors={[dominantColor, '#36363600', '#363636FF']}
+          start={{x:0.5, y:-0.3}}
+          end={{x: 0.5, y: 0.85}}
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: 300+StatusBar.currentHeight,
+            top: 0,
+          }}
+        />
         <CustomText
           style={{
             fontSize: 32,
@@ -47,8 +74,8 @@ export default function Artist({route, id, navigation}) {
             textShadowOffset: {width: 0, height: 0},
             textShadowRadius: 25,
             left: 5,
-            textAlign:'center',
-            right:5,
+            textAlign: 'center',
+            right: 5,
             bottom: 15,
           }}>
           {artist?.name}
@@ -56,84 +83,118 @@ export default function Artist({route, id, navigation}) {
       </View>
       {artist ? (
         <>
-          <ArtistCategory title={'Albums'}>
-            <FlatList
-              data={artist?.albums}
-              style={{
-                width: '100%',
-                marginVertical: 10,
-                textShadowColor: '#000',
-                textShadowOffset: {width: 0, height: 0},
-                textShadowRadius: 25,
-              }}
-              showsHorizontalScrollIndicator={false}
-              horizontal
-              keyExtractor={item => item.albumId}
-              renderItem={({item}) => (
-                <AlbumPreview
-                  data={item}
-                  navigation={navigation}
-                  artist={artist}
-                />
-              )}
-            />
+          <ArtistCategory title={'Songs'}>
+            {artist?.featuredSongs &&
+              artist.featuredSongs.map((v, i) => (
+                <TouchableOpacity key={`${v.youtubeId}${i}artist_${artist.id}`} onPress={()=>{
+                  setPaused(true);
+                  if(nowPlaying.id !== v.youtubeId)
+                  ytmusic.getVideoData(v.youtubeId).then(d=>{
+                    const obj = {
+                      ...v,
+                      ...d,
+                      author: ytmusic.joinArtists(v.artists),
+                      thumbnailUrl: ytmusic.manipulateThumbnailUrl(v.thumbnailUrl, 544,544)
+                    }
+                    setNowPlaying(obj)
+                    setIndex(0);
+                    setVideoQueue([obj])
+                    setPaused(false);
+                  })
+                }}>
+                  <SongPreview
+                    data={v}
+                    index={i}
+                  />
+                </TouchableOpacity>
+              ))}
           </ArtistCategory>
-          <ArtistCategory title={'Singles'} flatListData={artist?.singles}>
-            <FlatList
-              data={artist?.singles}
-              style={{
-                width: '100%',
-                marginVertical: 10,
-                textShadowColor: '#000',
-                textShadowOffset: {width: 0, height: 0},
-                textShadowRadius: 25,
-              }}
-              showsHorizontalScrollIndicator={false}
-              horizontal
-              keyExtractor={item => item.albumId}
-              renderItem={({item}) => (
-                <AlbumPreview
-                  data={item}
-                  navigation={navigation}
-                  artist={artist}
-                />
-              )}
-            />
-          </ArtistCategory>
-          <ArtistCategory title={'Suggested Artists'}>
-            <FlatList
-              data={artist?.suggestedArtists}
-              style={{
-                width: '100%',
-                height: 200,
-                marginVertical: 5,
-                textShadowColor: '#000',
-                textShadowOffset: {width: 0, height: 0},
-                textShadowRadius: 25,
-              }}
-              showsHorizontalScrollIndicator={false}
-              horizontal
-              keyExtractor={item => item.artistId}
-              renderItem={({item}) => (
-                <ArtistPreview data={item} navigation={navigation} />
-              )}
-            />
-          </ArtistCategory>
-          {artist?.description && <ArtistCategory title={'Description'}>
-            <CustomText
-              style={{
-                fontSize: 15,
-                fontWeight: '400',
-                color: scheme.textColor,
-                width: '100%',
-                textShadowColor: '#000',
-                textShadowOffset: {width: 0, height: 0},
-                textShadowRadius: 25,
-                padding: 10,
-              }}>
-              {artist?.description}
-            </CustomText>
-          </ArtistCategory>}
+          {artist?.albums?.length > 0 && (
+            <ArtistCategory title={'Albums'}>
+              <FlatList
+                data={artist?.albums}
+                style={{
+                  width: '100%',
+                  marginVertical: 10,
+                  textShadowColor: '#000',
+                  textShadowOffset: {width: 0, height: 0},
+                  textShadowRadius: 25,
+                }}
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                keyExtractor={item => item.albumId}
+                renderItem={({item}) => (
+                  <AlbumPreview
+                    data={item}
+                    navigation={navigation}
+                    artist={artist}
+                  />
+                )}
+              />
+            </ArtistCategory>
+          )}
+          {artist?.singles?.length > 0 && (
+            <ArtistCategory title={'Singles'} flatListData={artist?.singles}>
+              <FlatList
+                data={artist?.singles}
+                style={{
+                  width: '100%',
+                  marginVertical: 10,
+                  textShadowColor: '#000',
+                  textShadowOffset: {width: 0, height: 0},
+                  textShadowRadius: 25,
+                }}
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                keyExtractor={item => item.albumId}
+                renderItem={({item}) => (
+                  <AlbumPreview
+                    data={item}
+                    navigation={navigation}
+                    artist={artist}
+                  />
+                )}
+              />
+            </ArtistCategory>
+          )}
+          {artist?.suggestedArtists?.length > 0 && (
+            <ArtistCategory title={'Suggested Artists'}>
+              <FlatList
+                data={artist?.suggestedArtists}
+                style={{
+                  width: '100%',
+                  height: 200,
+                  marginVertical: 5,
+                  textShadowColor: '#000',
+                  textShadowOffset: {width: 0, height: 0},
+                  textShadowRadius: 25,
+                }}
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                keyExtractor={item => item.artistId}
+                renderItem={({item}) => (
+                  <ArtistPreview data={item} navigation={navigation} />
+                )}
+              />
+            </ArtistCategory>
+          )}
+          {artist?.description && (
+            <ArtistCategory title={'Description'}>
+              <CustomText
+                style={{
+                  fontSize: 15,
+                  fontWeight: '400',
+                  color: scheme.textColor,
+                  width: '100%',
+                  textShadowColor: '#000',
+                  textShadowOffset: {width: 0, height: 0},
+                  textShadowRadius: 25,
+                  padding: 10,
+                }}>
+                {artist?.description}
+              </CustomText>
+            </ArtistCategory>
+          )}
         </>
       ) : (
         <Loading />

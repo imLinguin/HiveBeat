@@ -1,15 +1,15 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Image} from 'react-native';
 import scheme from '../assets/scheme';
-import {videoContext} from '../context';
+import useStore from '../context';
 import CustomText from './CustomText';
 
 export default function SongPreview({data, index}) {
-  const context = useContext(videoContext);
+  const nowPlaying = useStore(state=>state.nowPlaying);
   const [isPlaying, setPlaying] = useState(false);
   useEffect(() => {
-    setPlaying(data.youtubeId === context.nowPlaying.youtubeId);
-  }, [context.nowPlaying]);
+    setPlaying(data.youtubeId === nowPlaying.youtubeId);
+  }, [nowPlaying]);
   return (
     <View
       style={{
@@ -40,7 +40,7 @@ export default function SongPreview({data, index}) {
         </CustomText>
       </View>
       <CustomText style={{color: scheme.textColor, fontWeight: '200', fontSize: 15}}>
-        {data.duration.label}
+        {data.duration && data.duration.label}
       </CustomText>
     </View>
   );

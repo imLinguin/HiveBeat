@@ -1,4 +1,4 @@
-import React, {useContext, useRef, useState, useEffect} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -10,6 +10,7 @@ import {
   Dimensions,
   StatusBar,
   ToastAndroid,
+  AppState,
 } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -18,7 +19,7 @@ import TextTicker from 'react-native-text-ticker';
 import SvgIcon from 'react-native-svg-icon';
 import {PanGestureHandler, State} from 'react-native-gesture-handler';
 import {BlurView} from '@react-native-community/blur';
-import {videoContext} from '../context';
+import useStore from '../context';
 import icons from '../assets/icons';
 import scheme from '../assets/scheme';
 import ytmusic from '../api/ytmusic';
@@ -49,7 +50,7 @@ export default function Player() {
     new Animated.Value(Dimensions.get('screen').height),
   ).current;
   const imageListRef = useRef(null);
-  const context = useContext(videoContext);
+  const context = useStore()
   const [minimized, setMinimized] = useState(true);
   const [sliderData, setSlider] = useState({});
   const [shouldSliderUpdate, setSliderUpdate] = useState(true);
@@ -72,7 +73,7 @@ export default function Player() {
     if (!context.videoQueue[context.nowPlayingIndex + 1]) {
       context.setPaused(true);
     } else {
-      context.setNowPlayingIndex(context.nowPlayingIndex + 1);
+      context.increaseIndex();
     }
   };
   const previousSong = () => {
@@ -81,18 +82,14 @@ export default function Player() {
       setSlider({...sliderData, currentTime: 0});
       context.setPaused(false);
     } else if (context.nowPlayingIndex != 0) {
-      context.setNowPlayingIndex(context.nowPlayingIndex - 1);
+      context.decreaseIndex();
     }
   };
   useEffect(() => {
-    if (context.videoQueue[context.nowPlayingIndex]?.title) {
+    if (context.videoQueue[context.nowPlayingIndex]?.youtubeId !== context.nowPlaying?.youtubeId) {
       const item = context.videoQueue[context.nowPlayingIndex];
       ytmusic.getVideoData(item.youtubeId).then(d => {
-        const artists = [];
-        item.artists.forEach(el => {
-          artists.push(el.name);
-        });
-        const newObj = {...item, ...d, author: artists.join(', ')};
+        const newObj = {...item, ...d, author: ytmusic.joinArtists(item.artists)};
         context.setNowPlaying(newObj);
         const newQueue = context.videoQueue;
         newQueue[context.nowPlayingIndex] = newObj;
@@ -146,8 +143,11 @@ export default function Player() {
         setSlider({...sliderData, currentTime: time});
       });
       MusicControl.on('nextTrack', () => {
-        context.setNowPlayingIndex(context.nowPlayingIndex + 1);
+        nextSong();
       });
+      MusicControl.on('previousTrack', ()=>{
+        previousSong()
+      })
       MusicControl.enableBackgroundMode(true);
     } else {
       MusicControl.resetNowPlaying();
@@ -157,20 +157,24 @@ export default function Player() {
 
   useEffect(() => {
     if (context.nowPlaying?.title) {
-      MusicControl.setNowPlaying({
-        title: context.nowPlaying.title,
-        artwork: context.nowPlaying.thumbnailUrl,
-        artist: context.nowPlaying.author,
-        duration: Number(context.nowPlaying.lengthSeconds),
-      });
       MusicControl.updatePlayback({
         state: context.paused
           ? MusicControl.STATE_PAUSED
           : MusicControl.STATE_PLAYING,
-        elapsedTime: Math.round(sliderData?.currentTime) || 0,
+        elapsedTime: Number(sliderData?.currentTime) || 0,
       });
     }
   }, [context.paused]);
+
+  useEffect(()=>{
+    const listener = AppState.addEventListener("change", (s)=>{
+      if(s=="background") {
+        setMinimized(true);
+      }
+    })
+
+    return listener.remove
+  },[])
 
   return (
     <View>
@@ -231,7 +235,7 @@ export default function Player() {
               setMinimized(true);
             } else {
               Animated.spring(fullPlayerMov, {
-                toValue: minimized ? height : 0,
+                toValue: minimized ? Dimensions.get('screen').height : 0,
                 duration: 400,
                 useNativeDriver: true,
               }).start();
@@ -351,8 +355,7 @@ export default function Player() {
                   onPress={() => {
                     setMinimized(true);
                     navigation.navigate('Artist', {
-                      id: context.videoQueue[context.nowPlayingIndex].artists[0]
-                        ?.id,
+                      id: context.videoQueue[context.nowPlayingIndex].artists[0]?.id,
                     });
                   }}>
                   <CustomText

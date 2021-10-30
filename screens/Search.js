@@ -26,8 +26,9 @@ export default function Search({navigation}) {
   const input = useRef(null);
 
   useEffect(() => {
+    if(inputText)
     ytm.searchSuggestions(inputText).then(r => {
-      setSuggestions(r.data.suggestions);
+      setSuggestions(r);
     });
     if (inputText.length > 0 && input.current?.isFocused()) {
       setSuggestionsVisibility(true);
@@ -45,6 +46,9 @@ export default function Search({navigation}) {
       return;
     }
     ytm.search(value).then(r => {
+      r.forEach((v,i) =>{
+        r[i].thumbnailUrl = ytm.manipulateThumbnailUrl(v.thumbnailUrl,250,250)
+      })
       setResults(r);
       setLoading(false);
       setSuggestionsVisibility(false);
@@ -91,8 +95,8 @@ export default function Search({navigation}) {
           />
         )}
       </ScrollView>
-      {showSuggestions && (
-        <View style={styles.suggestions}>
+        {showSuggestions && (
+        <View style={[styles.suggestions]}>
           {suggestions.map((e, i) => (
             <TouchableOpacity
               onPress={() => {
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     position: 'absolute',
     backgroundColor: scheme.colorBg,
-    top: StatusBar.currentHeight + 60,
+    top: StatusBar.currentHeight + 50,
     marginHorizontal: 10,
     width: '95%',
   },
