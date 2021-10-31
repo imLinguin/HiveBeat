@@ -13,8 +13,8 @@ export default function ArtistPreview({data}) {
         navigation.push('Artist', {id: data.artistId});
       }}
       style={{
-        height: '100%',
         width: 150,
+        marginVertical:5,
         marginHorizontal: 10,
         alignItems: 'center',
       }}>

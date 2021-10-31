@@ -1,20 +1,16 @@
 import React from 'react';
-import {TouchableOpacity, useWindowDimensions} from 'react-native';
+import {Image, TouchableOpacity, useWindowDimensions} from 'react-native';
 import {
   createBottomTabNavigator,
   BottomTabBar,
 } from '@react-navigation/bottom-tabs';
 import LinearGradient from 'react-native-linear-gradient';
-import SvgIcon from 'react-native-svg-icon';
-import icons from '../assets/icons';
-
 import Home from './Home';
 import Playlists from './Playlists';
 import Player from '../components/Player';
 import scheme from '../assets/scheme';
 import SearchTab from './SearchTab';
 
-const Icon = props => <SvgIcon {...props} svgs={icons} />;
 
 const Tab = createBottomTabNavigator();
 export default function Main() {
@@ -59,10 +55,9 @@ export default function Main() {
           component={Home}
           options={{
             tabBarIcon: ({focused}) => (
-              <Icon
-                height={focused ? '30' : '25'}
-                viewBox="0 0 50 64"
-                name="Home"
+              <Image
+                source={require('../assets/Home.png')}
+                style={{height: focused ? 35 : 30, width: focused ? 30 : 25}}
               />
             ),
           }}
@@ -72,10 +67,9 @@ export default function Main() {
           component={SearchTab}
           options={{
             tabBarIcon: ({focused}) => (
-              <Icon
-                height={focused ? '30' : '25'}
-                viewBox="0 0 54 65"
-                name="Search"
+              <Image
+                source={require('../assets/Search.png')}
+                style={{height: focused ? 35 : 30, width: focused ? 30 : 25}}
               />
             ),
           }}
@@ -85,10 +79,9 @@ export default function Main() {
           component={Playlists}
           options={{
             tabBarIcon: ({focused}) => (
-              <Icon
-                height={focused ? '25' : '20'}
-                viewBox="0 0 47 38"
-                name="Playlists"
+              <Image
+                source={require('../assets/Playlists.png')}
+                style={{height: focused ? 30 : 25, width: focused ? 37 : 32}}
               />
             ),
           }}

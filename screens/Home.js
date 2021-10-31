@@ -1,7 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {View, FlatList, StatusBar} from 'react-native';
-
-import Header from '../components/Header';
 import TrendingCard from '../components/TrendingCard';
 import scheme from '../assets/scheme';
 
@@ -20,12 +18,19 @@ export default function Home({navigation}) {
 
   return (
     <View style={{backgroundColor: scheme.colorBg}}>
-      <Header navigation={navigation} />
       {trending ? (
         <FlatList
           data={trending}
           keyExtractor={(item, index) => index}
-          renderItem={listProps => <TrendingCard listProps={listProps} style={{paddingTop: listProps.index == 0 ? StatusBar.currentHeight + 15 : 15}}/>}
+          renderItem={listProps => (
+            <TrendingCard
+              listProps={listProps}
+              style={{
+                paddingTop:
+                  listProps.index == 0 ? StatusBar.currentHeight + 15 : 15,
+              }}
+            />
+          )}
         />
       ) : (
         <View style={{height: '100%', width: '100%'}}></View>

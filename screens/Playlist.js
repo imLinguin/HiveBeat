@@ -1,29 +1,27 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
-  Text,
   useWindowDimensions,
   Animated,
   StyleSheet,
   StatusBar,
   Image,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import {SharedElement} from 'react-navigation-shared-element';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import {getColorFromURL} from 'rn-dominant-color';
 import SongPreview from '../components/SongPreview';
+import CustomText from '../components/CustomText';
+import Loading from '../components/Loading';
 import ytmusic from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import shallow from 'zustand/shallow';
 import useStore from '../context';
-import CustomText from '../components/CustomText';
-import LinearGradient from 'react-native-linear-gradient';
-import {SharedElement} from 'react-navigation-shared-element';
-import {getColorFromURL} from 'rn-dominant-color';
-import Loading from '../components/Loading';
-import TextTicker from 'react-native-text-ticker';
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-export default function Album({route}) {
+export default function Playlist({route}) {
   const context = useStore(
     state => ({
       setPaused: state.setPaused,
@@ -43,16 +41,16 @@ export default function Album({route}) {
   const IMAGE_SIZE = width / 1.6;
   useEffect(() => {
     if (songs.length > 0) return;
-    ytmusic.getAlbumSongs(route.params.data.albumId).then(albumData => {
-      if (albumData) {
-        setSongs(albumData);
+    ytmusic.getPlaylistSongs(route.params.data.playlistId).then(playlistData => {
+      if (playlistData) {
+        setSongs(playlistData);
         getColorFromURL(route.params.data?.thumbnailUrl).then(v => {
           setDominantColor(v);
           Animated.timing(gradientVisibility, {
             toValue: 1,
             duration: 1000,
-            useNativeDriver:true,
-          }).start()
+            useNativeDriver: true,
+          }).start();
         });
       }
     });
@@ -60,8 +58,8 @@ export default function Album({route}) {
 
   const play = index => {
     const v = songs[index];
-    context.setPaused(true);
-    if (context.nowPlaying.id !== v.youtubeId)
+    if (context.nowPlaying.id !== v.youtubeId){
+      context.setPaused(true);
       ytmusic.getVideoData(v.youtubeId).then(d => {
         let newQueue = [];
         v.thumbnailUrl = ytmusic.manipulateThumbnailUrl(
@@ -72,10 +70,9 @@ export default function Album({route}) {
         const obj = {
           ...d,
           ...v,
-          author: ytmusic.joinArtists(v.artists),
+          author:ytmusic.joinArtists(v.artists)
         };
         newQueue.push(obj);
-        console.log(context.shuffle);
         if (context.shuffle) {
           console.log('Shuffling');
           const shuffledArray = ytmusic.shuffle(songs.slice(), index);
@@ -90,7 +87,7 @@ export default function Album({route}) {
               );
               newQueue.push({
                 ...val,
-                author: ytmusic.joinArtists(v.artists),
+                author: ytmusic.joinArtists(val.artists),
               });
             }
           });
@@ -100,6 +97,7 @@ export default function Album({route}) {
         context.setIndex(0);
         context.setPaused(false);
       });
+    }
   };
 
   return (
@@ -204,19 +202,20 @@ export default function Album({route}) {
               outputRange: [1, 0, 0],
             }),
           }}>
-          <SharedElement id={`${route.params.data.albumId}.thumbnail`}>
+          <SharedElement id={`${route.params.data?.playlistId}.thumbnail`}>
             <Image
               source={{uri: route.params.data?.thumbnailUrl}}
               style={{width: IMAGE_SIZE, height: IMAGE_SIZE, borderRadius:10, resizeMode:'contain'}}
               borderRadius={10}
+              resizeMode={'contain'}
             />
           </SharedElement>
-            <TextTicker loop duration={10000} marqueeDelay={3000} bounce={false} style={styles.metadata_title}>
+            <CustomText style={styles.metadata_title}>
               {route.params.data?.title}
-            </TextTicker>
-          <CustomText style={styles.metadata_year}>
-            {route.params.data?.year}
-          </CustomText>
+            </CustomText>
+          {route.params.data?.totalSongs && <CustomText style={styles.metadata_year}>
+            {route.params.data?.totalSongs + ' songs'}
+          </CustomText>}
         </Animated.View>
       </View>
       <Animated.ScrollView
@@ -241,7 +240,7 @@ export default function Album({route}) {
         {songs?.length > 0 ? (
           songs?.map((v, i) => (
             <TouchableOpacity
-              key={`${v.youtubeId}${v.title}albumList`}
+              key={`${v.youtubeId}${v.title}playlist${i}`}
               onPress={e => {
                 play(i);
               }}>

@@ -11,10 +11,11 @@ import ArtistCategory from '../components/ArtistCategory';
 import LinearGradient from 'react-native-linear-gradient';
 import CustomText from '../components/CustomText';
 import shallow from 'zustand/shallow';
+import {SharedElement} from 'react-navigation-shared-element'
 import { getColorFromURL } from 'rn-dominant-color'; 
 import useStore from '../context';
 
-export default function Artist({route, id, navigation}) {
+function Artist({route, id, navigation}) {
   const {setPaused, setNowPlaying, setVideoQueue, nowPlaying, setIndex} = useStore(state => ({
     setPaused: state.setPaused,
     setIndex: state.setIndex,
@@ -43,6 +44,7 @@ export default function Artist({route, id, navigation}) {
       style={{backgroundColor: scheme.colorBg}}
       contentContainerStyle={{paddingBottom: 120}}>
       <View>
+        <SharedElement id={`${artist?.songsPlaylistId}.thumbnail`}>
         <Image
           style={{
             width: '100%',
@@ -52,6 +54,7 @@ export default function Artist({route, id, navigation}) {
           resizeMode={'cover'}
           source={{uri: artist && artist.thumbnailUrl}}
         />
+        </SharedElement>
         <LinearGradient
           colors={[dominantColor, '#36363600', '#363636FF']}
           start={{x:0.5, y:-0.3}}
@@ -109,6 +112,18 @@ export default function Artist({route, id, navigation}) {
                 </TouchableOpacity>
               ))}
           </ArtistCategory>
+          {artist.songsPlaylistId && 
+          <TouchableOpacity onPress={()=>{
+            navigation.push('Playlist', {
+              data: {
+                playlistId: artist.songsPlaylistId,
+                thumbnailUrl: artist.thumbnailUrl,
+                title: `${artist.name} Songs`,
+              },
+            });
+          }}>
+            <CustomText style={{marginLeft:10, marginBottom:20,fontSize:30, fontWeight:"600", color:scheme.colorPrimary}}>See All</CustomText>
+            </TouchableOpacity>}
           {artist?.albums?.length > 0 && (
             <ArtistCategory title={'Albums'}>
               <FlatList
@@ -202,3 +217,11 @@ export default function Artist({route, id, navigation}) {
     </ScrollView>
   );
 }
+
+Artist.sharedElements = (route, other) =>{
+  const {data} = other.params;
+  const id = data?.playlistId || data?.albumId || data?.artistId;
+  return [`${id}.thumbnail`];
+}
+
+export default Artist

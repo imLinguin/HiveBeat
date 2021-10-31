@@ -44,29 +44,32 @@ export default {
           },
         },
       },
-      headers:{
-        origin: "https://music.youtube.com",
-        referrer: "https://music.youtube.com/",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "same-origin",
-        "sec-fetch-site": "same-origin",
-        "x-youtube-client-name": "69",
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0,gzip(gfe)"
-      }
-    }).then(r=>{
+      headers: {
+        origin: 'https://music.youtube.com',
+        referrer: 'https://music.youtube.com/',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'same-origin',
+        'sec-fetch-site': 'same-origin',
+        'x-youtube-client-name': '69',
+        'User-Agent':
+          'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0,gzip(gfe)',
+      },
+    }).then(r => {
       const suggestions = [];
-      for (const suggestion of r.data?.contents[0]?.searchSuggestionsSectionRenderer.contents) {
-        let text = ""
-        suggestion.searchSuggestionRenderer.suggestion.runs.forEach((v)=>{
-          text+=v.text
-        })
-        suggestions.push(text)
-      }
-      return suggestions
+      if (r.data.contents)
+        for (const suggestion of r.data?.contents[0]
+          ?.searchSuggestionsSectionRenderer.contents) {
+          let text = '';
+          suggestion.searchSuggestionRenderer.suggestion.runs.forEach(v => {
+            text += v.text;
+          });
+          suggestions.push(text);
+        }
+      return suggestions;
     });
   },
-  search: async query => {
-    const results = await youtubemusic.searchMusics(query);
+  search: async (query, type) => {
+    const results = await youtubemusic.search(query, type);
     return results;
     //  console.log(results)
     //  const apiPath = `/api/v1/search?q=${query}`;
@@ -77,7 +80,7 @@ export default {
   },
   musicSuggestions: async id => {
     const array = await youtubemusic.getSuggestions(id);
-    for (item in array) {
+    for (const item in array) {
       if (!array[item].youtubeId) {
         array.splice(item, 1);
       }
@@ -92,6 +95,11 @@ export default {
   getAlbumSongs: async id => {
     const album = await youtubemusic.listMusicsFromAlbum(id);
     return album;
+  },
+
+  getPlaylistSongs: async id => {
+    const playlist = await youtubemusic.listMusicsFromPlaylist(id);
+    return playlist;
   },
 
   manipulateThumbnailUrl: (url, width, height) => {

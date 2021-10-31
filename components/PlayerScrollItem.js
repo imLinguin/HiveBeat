@@ -5,6 +5,7 @@ import scheme from '../assets/scheme';
 import useStore from '../context';
 import shallow from 'zustand/shallow';
 import CustomText from './CustomText';
+import ytmusic from '../api/ytmusic';
 
 export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
   const {nowPlayingIndex, nowPlaying, setIndex} = useStore(state=> ({
@@ -15,11 +16,7 @@ export default function PlayerScrollItem({IMAGE_SIZE, data, index}) {
   const [isNowPlaying, setIsNowPlaying] = useState(true);
   const [artists, setArtists] = useState('');
   useEffect(() => {
-    const artists = [];
-    data.artists.forEach(el => {
-      el.name && artists.push(el.name);
-    });
-    setArtists(artists.join(', '));
+    setArtists(ytmusic.joinArtists(data.artists))
     setIsNowPlaying(index - 1 == nowPlayingIndex);
   }, [nowPlayingIndex, nowPlaying.id]);
   return (

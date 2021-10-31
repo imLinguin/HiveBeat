@@ -5,7 +5,9 @@ import ytm from '../api/ytmusic';
 import useStore from '../context';
 import shallow from 'zustand/shallow'
 import CustomText from './CustomText';
-export default function TrendingCard({listProps, style}) {
+
+
+export default function Song({listProps, style}) {
   const {nowPlaying, setNowPlaying, setVideoQueue, resetIndex, setPaused} = useStore(state => ({
     nowPlaying: state.nowPlaying,
     setNowPlaying: state.setNowPlaying,
@@ -48,7 +50,7 @@ export default function TrendingCard({listProps, style}) {
         source={{uri: listProps.thumbnailUrl}}
         style={{width: 150, height: 150}}
         borderRadius={15}
-        resizeMode={'cover'}
+        resizeMode={'contain'}
       />
       <View style={styles.dataWrapper}>
         <CustomText style={{...styles.titleText, color: isPrimary}}>

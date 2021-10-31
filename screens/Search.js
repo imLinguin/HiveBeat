@@ -6,6 +6,7 @@ import {
   StyleSheet,
   StatusBar,
   ScrollView,
+  Image,
   useWindowDimensions,
 } from 'react-native';
 
@@ -14,9 +15,14 @@ import ytm from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import SearchResult from '../components/SearchResult';
 import CustomText from '../components/CustomText';
+import {SearchType} from '../api/youtubemusic';
+import {SharedElement} from 'react-navigation-shared-element';
+import ArtistPreview from '../components/ArtistPreview';
+import AlbumPreview from '../components/AlbumPreview';
+import PlaylistPreview from '../components/PlaylistPreview';
 
-export default function Search({navigation}) {
-  const {width, height} = useWindowDimensions()
+function Search({navigation}) {
+  const {width, height} = useWindowDimensions();
   const [inputText, setText] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,10 +32,10 @@ export default function Search({navigation}) {
   const input = useRef(null);
 
   useEffect(() => {
-    if(inputText)
-    ytm.searchSuggestions(inputText).then(r => {
-      setSuggestions(r);
-    });
+    if (inputText)
+      ytm.searchSuggestions(inputText).then(r => {
+        setSuggestions(r);
+      });
     if (inputText.length > 0 && input.current?.isFocused()) {
       setSuggestionsVisibility(true);
     } else {
@@ -37,8 +43,8 @@ export default function Search({navigation}) {
     }
   }, [inputText]);
 
-  const search = (_,value) => {
-    if(!value) value=inputText;
+  const search = (_, value) => {
+    if (!value) value = inputText;
     input.current.blur();
     setLoading(true);
     setSuggestionsVisibility(false);
@@ -46,9 +52,13 @@ export default function Search({navigation}) {
       return;
     }
     ytm.search(value).then(r => {
-      r.forEach((v,i) =>{
-        r[i].thumbnailUrl = ytm.manipulateThumbnailUrl(v.thumbnailUrl,250,250)
-      })
+      r.forEach((v, i) => {
+        r[i].thumbnailUrl = ytm.manipulateThumbnailUrl(
+          v.thumbnailUrl,
+          250,
+          250,
+        );
+      });
       setResults(r);
       setLoading(false);
       setSuggestionsVisibility(false);
@@ -67,7 +77,9 @@ export default function Search({navigation}) {
           onSubmitEditing={search}
           onFocus={() => setSuggestionsVisibility(true)}
           onBlur={() => setSuggestionsVisibility(false)}
-          onChangeText={e=>{setText(e)}}
+          onChangeText={e => {
+            setText(e);
+          }}
           placeholderTextColor="rgba(255,255,255,0.6)"
           placeholder="here goes ur fav song name"
           returnKeyType="search"
@@ -83,7 +95,23 @@ export default function Search({navigation}) {
           justifyContent: 'center',
         }}>
         {loading === false ? (
-          results.map((e,i) => <SearchResult key={`${e.youtubeId} ${i}`} listProps={e} />)
+          results.map((e, i) => {
+            if (e.youtubeId)
+              return <SearchResult key={`${e.youtubeId} ${i}`} listProps={e} />;
+            else if (e.albumId)
+              return (
+                <AlbumPreview
+                  key={`${e.albumId} ${i}`}
+                  data={e}
+                  navigation={navigation}
+                  index={i}
+                />
+              );
+            else if (e.playlistId)
+              return <PlaylistPreview key={`${e.playlistId} ${i}`} data={e} />;
+            else if (e.artistId)
+              return <ArtistPreview key={`${e.artistId} ${i}`} data={e} />;
+          })
         ) : (
           <Loading
             style={{
@@ -95,13 +123,13 @@ export default function Search({navigation}) {
           />
         )}
       </ScrollView>
-        {showSuggestions && (
+      {showSuggestions && (
         <View style={[styles.suggestions]}>
           {suggestions.map((e, i) => (
             <TouchableOpacity
               onPress={() => {
                 setText(e);
-                search(null,e);
+                search(null, e);
               }}
               key={i}
               style={{padding: 5}}>
@@ -114,6 +142,13 @@ export default function Search({navigation}) {
   );
 }
 
+Search.sharedElements = (route, otherRoute, x) => {
+  const {data} = otherRoute.params
+  const id = data?.playlistId || data?.albumId || data?.artistId
+    return [`${id}.thumbnail`];
+}
+
+export default Search
 const styles = StyleSheet.create({
   topWrapper: {
     flexDirection: 'row',
@@ -133,6 +168,6 @@ const styles = StyleSheet.create({
   },
   results: {
     backgroundColor: scheme.colorBg,
-    height:'100%'
+    height: '100%',
   },
 });

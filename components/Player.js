@@ -11,6 +11,7 @@ import {
   StatusBar,
   ToastAndroid,
   AppState,
+  Alert,
 } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -50,7 +51,7 @@ export default function Player() {
     new Animated.Value(Dimensions.get('screen').height),
   ).current;
   const imageListRef = useRef(null);
-  const context = useStore()
+  const context = useStore();
   const [minimized, setMinimized] = useState(true);
   const [sliderData, setSlider] = useState({});
   const [shouldSliderUpdate, setSliderUpdate] = useState(true);
@@ -86,14 +87,21 @@ export default function Player() {
     }
   };
   useEffect(() => {
-    if (context.videoQueue[context.nowPlayingIndex]?.youtubeId !== context.nowPlaying?.youtubeId) {
+    if (
+      context.videoQueue[context.nowPlayingIndex]?.youtubeId !==
+      context.nowPlaying?.youtubeId
+    ) {
       const item = context.videoQueue[context.nowPlayingIndex];
       ytmusic.getVideoData(item.youtubeId).then(d => {
-        const newObj = {...item, ...d, author: ytmusic.joinArtists(item.artists)};
-        context.setNowPlaying(newObj);
+        const newObj = {
+          ...item,
+          ...d,
+          author: ytmusic.joinArtists(item.artists),
+        };
         const newQueue = context.videoQueue;
         newQueue[context.nowPlayingIndex] = newObj;
         context.setVideoQueue(newQueue);
+        context.setNowPlaying(newObj);
         context.setPaused(false);
       });
     }
@@ -145,9 +153,9 @@ export default function Player() {
       MusicControl.on('nextTrack', () => {
         nextSong();
       });
-      MusicControl.on('previousTrack', ()=>{
-        previousSong()
-      })
+      MusicControl.on('previousTrack', () => {
+        previousSong();
+      });
       MusicControl.enableBackgroundMode(true);
     } else {
       MusicControl.resetNowPlaying();
@@ -166,20 +174,19 @@ export default function Player() {
     }
   }, [context.paused]);
 
-  useEffect(()=>{
-    const listener = AppState.addEventListener("change", (s)=>{
-      if(s=="background") {
+  useEffect(() => {
+    const listener = AppState.addEventListener('change', s => {
+      if (s == 'background') {
         setMinimized(true);
       }
-    })
+    });
 
-    return listener.remove
-  },[])
+    return listener.remove;
+  }, []);
 
   return (
     <View>
-      {context.nowPlaying.url ? (
-        <Video
+        {context.nowPlaying?.url && <Video
           ref={videoRef}
           onEnd={() => {
             nextSong();
@@ -200,7 +207,7 @@ export default function Player() {
           onBuffer={data => {
             setBuffering(data.isBuffering);
             MusicControl.updatePlayback({
-              elapsedTime: Math.round(sliderData?.currentTime) || 0,
+              elapsedTime: Number(sliderData?.currentTime) || 0,
               state: data.isBuffering
                 ? MusicControl.STATE_BUFFERING
                 : context.paused
@@ -211,8 +218,7 @@ export default function Player() {
           playInBackground
           onAudioBecomingNoisy={() => context.setPaused(true)}
           source={{uri: context.nowPlaying.url}}
-        />
-      ) : null}
+        />}
       <SmallPlayer
         sliderData={sliderData}
         minimized={minimized}
@@ -310,7 +316,7 @@ export default function Player() {
                     ...context.videoQueue,
                     {spacer: true, youtubeId: '-1'},
                   ]}
-                  keyExtractor={(item) =>
+                  keyExtractor={item =>
                     item?.youtubeId + item.title + 'carousel'
                   }
                   horizontal={true}
@@ -353,9 +359,16 @@ export default function Player() {
                 </TextTicker>
                 <TouchableOpacity
                   onPress={() => {
+                    if (
+                      !context.videoQueue[context.nowPlayingIndex].artists[0]?.id
+                    ){
+                      Alert.alert("YO!", "YouTube doesn't provide any ID for that artist", [{text:"Okay, okay"}], {cancelable:true});
+                      return;
+                    }
                     setMinimized(true);
                     navigation.navigate('Artist', {
-                      id: context.videoQueue[context.nowPlayingIndex].artists[0]?.id,
+                      id: context.videoQueue[context.nowPlayingIndex].artists[0]
+                        ?.id,
                     });
                   }}>
                   <CustomText

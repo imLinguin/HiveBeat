@@ -19,13 +19,20 @@ export default function SongPreview({data, index}) {
         justifyContent: 'space-between',
       }}>
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <CustomText style={{color: isPlaying ? scheme.colorPrimary : scheme.textColor, fontWeight:'600', width: 25, textAlign:'left'}}>
-          {index+1}
+        <CustomText
+          style={{
+            color: isPlaying ? scheme.colorPrimary : scheme.textColor,
+            fontWeight: '600',
+            width: 25,
+            textAlign: 'left',
+          }}>
+          {index + 1}
         </CustomText>
         <Image
           source={{uri: data.thumbnailUrl}}
           style={{width: 70, height: 70}}
           borderRadius={5}
+          resizeMode={'contain'}
         />
         <CustomText
           numberOfLines={3}
@@ -34,12 +41,13 @@ export default function SongPreview({data, index}) {
             fontWeight: '600',
             paddingHorizontal: 15,
             fontSize: 15,
-            width: '65%'
+            width: '65%',
           }}>
           {data.title}
         </CustomText>
       </View>
-      <CustomText style={{color: scheme.textColor, fontWeight: '200', fontSize: 15}}>
+      <CustomText
+        style={{color: scheme.textColor, fontWeight: '200', fontSize: 15}}>
         {data.duration && data.duration.label}
       </CustomText>
     </View>
