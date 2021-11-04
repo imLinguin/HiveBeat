@@ -6,6 +6,7 @@ import {
   StyleSheet,
   StatusBar,
   Image,
+  Easing,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {SharedElement} from 'react-navigation-shared-element';
@@ -18,6 +19,7 @@ import ytmusic from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import shallow from 'zustand/shallow';
 import useStore from '../context';
+import TextTicker from 'react-native-text-ticker';
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -210,9 +212,9 @@ export default function Playlist({route}) {
               resizeMode={'contain'}
             />
           </SharedElement>
-            <CustomText style={styles.metadata_title}>
+            <TextTicker numberOfLines={1} loop duration={20000} marqueeDelay={3000} easing={Easing.linear} bounce={false} style={[styles.metadata_title]}>
               {route.params.data?.title}
-            </CustomText>
+            </TextTicker>
           {route.params.data?.totalSongs && <CustomText style={styles.metadata_year}>
             {route.params.data?.totalSongs + ' songs'}
           </CustomText>}

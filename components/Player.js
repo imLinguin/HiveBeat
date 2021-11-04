@@ -12,6 +12,7 @@ import {
   ToastAndroid,
   AppState,
   Alert,
+  Easing,
 } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -74,7 +75,17 @@ export default function Player() {
     if (!context.videoQueue[context.nowPlayingIndex + 1]) {
       context.setPaused(true);
     } else {
+      const targetIndex = context.nowPlayingIndex + 1;
       context.increaseIndex();
+      context.setPaused(true)
+      setBuffering(true);
+      ytmusic.getVideoData(context.videoQueue[targetIndex].youtubeId).then((v)=>{
+        const newData = {...context.videoQueue[targetIndex], ...v, author: ytmusic.joinArtists(context.videoQueue[targetIndex].artists)}
+        const newQueue = context.videoQueue
+        newQueue[targetIndex] = newData
+        context.setVideoQueue(newQueue)
+        context.setNowPlaying(newData);
+      })
     }
   };
   const previousSong = () => {
@@ -83,28 +94,13 @@ export default function Player() {
       setSlider({...sliderData, currentTime: 0});
       context.setPaused(false);
     } else if (context.nowPlayingIndex != 0) {
+      const targetIndex = context.nowPlayingIndex - 1;
       context.decreaseIndex();
+      setBuffering(true);
+      context.setNowPlaying(context.videoQueue[targetIndex]);
     }
   };
   useEffect(() => {
-    if (
-      context.videoQueue[context.nowPlayingIndex]?.youtubeId !==
-      context.nowPlaying?.youtubeId
-    ) {
-      const item = context.videoQueue[context.nowPlayingIndex];
-      ytmusic.getVideoData(item.youtubeId).then(d => {
-        const newObj = {
-          ...item,
-          ...d,
-          author: ytmusic.joinArtists(item.artists),
-        };
-        const newQueue = context.videoQueue;
-        newQueue[context.nowPlayingIndex] = newObj;
-        context.setVideoQueue(newQueue);
-        context.setNowPlaying(newObj);
-        context.setPaused(false);
-      });
-    }
     imageListRef.current?.scrollToOffset({
       offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
       animated: true,
@@ -173,16 +169,6 @@ export default function Player() {
       });
     }
   }, [context.paused]);
-
-  useEffect(() => {
-    const listener = AppState.addEventListener('change', s => {
-      if (s == 'background') {
-        setMinimized(true);
-      }
-    });
-
-    return listener.remove;
-  }, []);
 
   return (
     <View>
@@ -340,7 +326,7 @@ export default function Player() {
               </View>
               <View style={styles.metadata_full_wrapper}>
                 <TextTicker
-                  style={styles.full_player_title}
+                  style={[styles.full_player_title]}
                   scroll
                   loop
                   onPress={() => {
@@ -351,7 +337,8 @@ export default function Player() {
                       });
                   }}
                   numberOfLines={1}
-                  duration={10000}
+                  duration={20000}
+                  easing={Easing.linear}
                   repeatSpacer={150}
                   bounce={false}
                   marqueeDelay={1500}>
@@ -365,6 +352,7 @@ export default function Player() {
                       Alert.alert("YO!", "YouTube doesn't provide any ID for that artist", [{text:"Okay, okay"}], {cancelable:true});
                       return;
                     }
+                    console.log(context.videoQueue[context.nowPlayingIndex].artists[0]?.id);
                     setMinimized(true);
                     navigation.navigate('Artist', {
                       id: context.videoQueue[context.nowPlayingIndex].artists[0]

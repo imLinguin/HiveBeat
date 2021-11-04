@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as youtubemusic from './youtubemusic/index.js';
 import ytdl from 'react-native-ytdl';
+import { requestMusicData } from './musicdata.js';
 const baseURL = 'https://invidio.xamh.de';
 
 const getURL = formatStreams => {
@@ -20,6 +21,23 @@ const getURL = formatStreams => {
   if (best) return best;
   else return formatStreams[0];
 };
+
+const craftThumbnailURLFromId =  id =>{
+  return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`
+};
+
+const getVideoData = async id => {
+  const data = await ytdl.getInfo(id);
+  const url = getURL(data.formats).url;
+  return {
+    youtubeId:id,
+    title: data.videoDetails.title,
+    lengthSeconds: data.videoDetails.lengthSeconds,
+    formatStreams: data.formats,
+    url,
+  };
+}
+
 export default {
   getTrending: () => {
     const apiPath = '/api/v1/trending?type=music';
@@ -108,18 +126,19 @@ export default {
     return url;
   },
 
-  getVideoData: async id => {
-    const data = await ytdl.getInfo(id);
-    const url = getURL(data.formats).url;
-    return {
-      id,
-      lengthSeconds: data.videoDetails.lengthSeconds,
-      formatStreams: data.formats,
-      url,
-    };
+
+  getVideoData,
+
+  getMusicData: async id => {
+    return requestMusicData(id).then((v)=>{
+      return getVideoData(id).then((d)=>{
+        return {...v,...d};
+      })
+    });
   },
 
   joinArtists: array => {
+    if(!array) return "";
     let newArray = [];
     array.forEach(e => {
       newArray.push(e.name);

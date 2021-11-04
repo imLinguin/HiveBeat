@@ -99,9 +99,9 @@ function Artist({route, id, navigation}) {
                       author: ytmusic.joinArtists(v.artists),
                       thumbnailUrl: ytmusic.manipulateThumbnailUrl(v.thumbnailUrl, 544,544)
                     }
-                    setNowPlaying(obj)
-                    setIndex(0);
                     setVideoQueue([obj])
+                    setIndex(0);
+                    setNowPlaying(obj)
                     setPaused(false);
                   })
                 }}>

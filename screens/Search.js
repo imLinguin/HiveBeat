@@ -15,11 +15,11 @@ import ytm from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import SearchResult from '../components/SearchResult';
 import CustomText from '../components/CustomText';
-import {SearchType} from '../api/youtubemusic';
-import {SharedElement} from 'react-navigation-shared-element';
 import ArtistPreview from '../components/ArtistPreview';
 import AlbumPreview from '../components/AlbumPreview';
 import PlaylistPreview from '../components/PlaylistPreview';
+import shallow from 'zustand/shallow';
+import useStore from '../context';
 
 function Search({navigation}) {
   const {width, height} = useWindowDimensions();
@@ -30,6 +30,7 @@ function Search({navigation}) {
   const [showSuggestions, setSuggestionsVisibility] = useState(false);
   const scrollView = useRef(null);
   const input = useRef(null);
+  const context = useStore(state=>({setNowPlaying:state.setNowPlaying, setIndex: state.setIndex, setVideoQueue: state.setVideoQueue}), shallow)
 
   useEffect(() => {
     if (inputText)
@@ -51,6 +52,30 @@ function Search({navigation}) {
     if (inputText.length === 0) {
       return;
     }
+    // Checks to play youtube url
+    if(value.match(/^(https?\:\/\/)?(music\.)?(youtube\.com)\/(watch\?v=).+$/)){
+      let id = value.split("/").pop();
+      id = id.replace("watch?v=", "");
+      id = id.slice(0,id.indexOf("&"));
+      console.log(id);
+
+      ytm.getMusicData(id).then((v)=>{
+        context.setNowPlaying(v);
+        context.setVideoQueue([v]);
+        context.setIndex(0);
+        setLoading(false);
+      })
+    }
+    //https://music.youtube.com/playlist?list=OLAK5uy_lJFdICFYUcP7x0t13ZXmPbTMCE56TKPeo&feature=share
+    else if(value.match(/^(https?\:\/\/)?(music\.)?(youtube\.com)\/(playlist\?list=).+$/)){
+      let id = value.split("/").pop();
+      id = id.replace("playlist?list=", "");
+      id = id.slice(0,id.indexOf("&"));
+      setLoading(false)
+      console.log(id);
+      navigation.navigate("Playlist", {data:{playlistId:"VL"+id}})
+    }
+    else
     ytm.search(value).then(r => {
       r.forEach((v, i) => {
         r[i].thumbnailUrl = ytm.manipulateThumbnailUrl(
@@ -81,7 +106,7 @@ function Search({navigation}) {
             setText(e);
           }}
           placeholderTextColor="rgba(255,255,255,0.6)"
-          placeholder="here goes ur fav song name"
+          placeholder="Search or paste URL"
           returnKeyType="search"
         />
       </View>
