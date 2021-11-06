@@ -31,7 +31,6 @@ const getVideoData = async id => {
   const url = getURL(data.formats).url;
   return {
     youtubeId:id,
-    title: data.videoDetails.title,
     lengthSeconds: data.videoDetails.lengthSeconds,
     formatStreams: data.formats,
     url,

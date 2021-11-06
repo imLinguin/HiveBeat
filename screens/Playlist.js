@@ -97,7 +97,6 @@ export default function Playlist({route}) {
         context.setVideoQueue(newQueue);
         context.setNowPlaying(obj);
         context.setIndex(0);
-        context.setPaused(false);
       });
     }
   };

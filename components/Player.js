@@ -10,7 +10,6 @@ import {
   Dimensions,
   StatusBar,
   ToastAndroid,
-  AppState,
   Alert,
   Easing,
 } from 'react-native';
@@ -70,22 +69,32 @@ export default function Player() {
       state: MusicControl.STATE_BUFFERING,
       elapsedTime: 0,
     });
+    setBuffering(true);
+    context.setPaused(false);
   };
   const nextSong = () => {
-    if (!context.videoQueue[context.nowPlayingIndex + 1]) {
+    if (!context.videoQueue[context.nowPlayingIndex + 1] && context.loop != 0) {
+      ytmusic.getVideoData(context.videoQueue[0].youtubeId).then(v => {
+        const newObj = {...context.videoQueue[0], ...v};
+        context.setNowPlaying(newObj);
+        context.setIndex(0);
+      });
       context.setPaused(true);
     } else {
       const targetIndex = context.nowPlayingIndex + 1;
       context.increaseIndex();
-      context.setPaused(true)
-      setBuffering(true);
-      ytmusic.getVideoData(context.videoQueue[targetIndex].youtubeId).then((v)=>{
-        const newData = {...context.videoQueue[targetIndex], ...v, author: ytmusic.joinArtists(context.videoQueue[targetIndex].artists)}
-        const newQueue = context.videoQueue
-        newQueue[targetIndex] = newData
-        context.setVideoQueue(newQueue)
-        context.setNowPlaying(newData);
-      })
+      ytmusic
+        .getVideoData(context.videoQueue[targetIndex].youtubeId)
+        .then(v => {
+          const newData = {
+            ...context.videoQueue[targetIndex],
+            ...v,
+            author: ytmusic.joinArtists(
+              context.videoQueue[targetIndex].artists,
+            ),
+          };
+          context.setNowPlaying(newData);
+        });
     }
   };
   const previousSong = () => {
@@ -97,7 +106,19 @@ export default function Player() {
       const targetIndex = context.nowPlayingIndex - 1;
       context.decreaseIndex();
       setBuffering(true);
-      context.setNowPlaying(context.videoQueue[targetIndex]);
+      const song = context.videoQueue[targetIndex];
+      ytmusic
+        .getVideoData(context.videoQueue[targetIndex].youtubeId)
+        .then(v => {
+          const newData = {
+            ...context.videoQueue[targetIndex],
+            ...v,
+            author: ytmusic.joinArtists(
+              context.videoQueue[targetIndex].artists,
+            ),
+          };
+          context.setNowPlaying(newData);
+        });
     }
   };
   useEffect(() => {
@@ -127,7 +148,7 @@ export default function Player() {
   }, [minimized]);
 
   useEffect(() => {
-    if (context.nowPlaying.title) {
+    if (context.nowPlaying?.title) {
       MusicControl.enableControl('play', true);
       MusicControl.enableControl('pause', true);
       MusicControl.enableControl('stop', false);
@@ -146,18 +167,13 @@ export default function Player() {
         videoRef.current.seek(time);
         setSlider({...sliderData, currentTime: time});
       });
-      MusicControl.on('nextTrack', () => {
-        nextSong();
-      });
-      MusicControl.on('previousTrack', () => {
-        previousSong();
-      });
+      MusicControl.on('nextTrack', nextSong);
+      MusicControl.on('previousTrack', previousSong);
       MusicControl.enableBackgroundMode(true);
     } else {
       MusicControl.resetNowPlaying();
     }
-    context.setPaused(false);
-  }, [context.nowPlaying.title]);
+  }, [context.nowPlaying]);
 
   useEffect(() => {
     if (context.nowPlaying?.title) {
@@ -172,10 +188,16 @@ export default function Player() {
 
   return (
     <View>
-        {context.nowPlaying?.url && <Video
+      {context.nowPlaying?.url && (
+        <Video
           ref={videoRef}
           onEnd={() => {
-            nextSong();
+            if(context.loop == 2){
+              videoRef.current.seek(0);
+            }
+            else{
+              nextSong();
+            }
           }}
           audioOnly
           paused={context.paused}
@@ -204,7 +226,8 @@ export default function Player() {
           playInBackground
           onAudioBecomingNoisy={() => context.setPaused(true)}
           source={{uri: context.nowPlaying.url}}
-        />}
+        />
+      )}
       <SmallPlayer
         sliderData={sliderData}
         minimized={minimized}
@@ -217,22 +240,21 @@ export default function Player() {
           minOffsetY={30}
           onGestureEvent={Animated.event(
             [{nativeEvent: {translationY: fullPlayerMov}}],
-            {useNativeDriver: true},
-          )}
-          onHandlerStateChange={e => {
-            if (
-              e.nativeEvent.oldState === State.ACTIVE &&
-              e.nativeEvent.translationY > 100
-            ) {
-              setMinimized(true);
-            } else {
-              Animated.spring(fullPlayerMov, {
-                toValue: minimized ? Dimensions.get('screen').height : 0,
-                duration: 400,
-                useNativeDriver: true,
-              }).start();
-            }
-          }}>
+            {
+              useNativeDriver: true,
+              listener: e => {
+                if (e.nativeEvent.translationY > 100) {
+                  setMinimized(true);
+                } else {
+                  Animated.spring(fullPlayerMov, {
+                    toValue: minimized ? Dimensions.get('screen').height : 0,
+                    duration: 400,
+                    useNativeDriver: true,
+                  }).start();
+                }
+              },
+            },
+          )}>
           <Animated.View
             style={[
               styles.full_player_wrapper,
@@ -314,6 +336,7 @@ export default function Player() {
                   renderItem={({item, index}) =>
                     item?.thumbnailUrl ? (
                       <PlayerScrollItem
+                        context={context}
                         data={item}
                         index={index}
                         IMAGE_SIZE={IMAGE_SIZE}
@@ -347,12 +370,21 @@ export default function Player() {
                 <TouchableOpacity
                   onPress={() => {
                     if (
-                      !context.videoQueue[context.nowPlayingIndex].artists[0]?.id
-                    ){
-                      Alert.alert("YO!", "YouTube doesn't provide any ID for that artist", [{text:"Okay, okay"}], {cancelable:true});
+                      !context.videoQueue[context.nowPlayingIndex].artists[0]
+                        ?.id
+                    ) {
+                      Alert.alert(
+                        'YO!',
+                        "YouTube doesn't provide any ID for that artist",
+                        [{text: 'Okay, okay'}],
+                        {cancelable: true},
+                      );
                       return;
                     }
-                    console.log(context.videoQueue[context.nowPlayingIndex].artists[0]?.id);
+                    console.log(
+                      context.videoQueue[context.nowPlayingIndex].artists[0]
+                        ?.id,
+                    );
                     setMinimized(true);
                     navigation.navigate('Artist', {
                       id: context.videoQueue[context.nowPlayingIndex].artists[0]
@@ -366,7 +398,7 @@ export default function Player() {
                       paddingBottom: 15,
                       fontWeight: '100',
                     }}>
-                    {context.videoQueue[context.nowPlayingIndex]?.author}
+                    {context.nowPlaying.author}
                   </CustomText>
                 </TouchableOpacity>
               </View>
@@ -401,10 +433,10 @@ export default function Player() {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                   }}>
-                  <CustomText style={styles.text}>
+                  <CustomText style={[styles.text, {fontWeight:'700'}]}>
                     {getReadableTime(sliderData.currentTime)}
                   </CustomText>
-                  <CustomText style={styles.text}>
+                  <CustomText style={[styles.text,{fontWeight: '300', opacity:0.7}]}>
                     {getReadableTime(sliderData.seekableDuration)}
                   </CustomText>
                 </View>
@@ -484,7 +516,17 @@ export default function Player() {
                     name="Skip"
                   />
                 </Pressable>
-                <Pressable>
+                <Pressable onPress={(e)=>{
+                  context.changeLoop();
+                  let newVal = context.loop + 1
+                  if(newVal == 3)
+                    newVal = 0 
+                  ToastAndroid.showWithGravity(
+                    newVal != 0 ? (newVal == 1 ? 'Queue Looping' : 'Song Looping') : 'Looping Disabled',
+                    ToastAndroid.SHORT,
+                    ToastAndroid.CENTER,  
+                  );
+                }} style={{padding: 5}}>
                   <CustomText style={styles.text}>L</CustomText>
                 </Pressable>
               </View>

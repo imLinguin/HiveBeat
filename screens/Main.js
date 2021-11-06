@@ -48,7 +48,7 @@ export default function Main() {
           tabBarShowLabel: true,
           tabBarActiveTintColor: scheme.colorPrimary,
           tabBarHideOnKeyboard: true,
-          tabBarButton: props => <TouchableOpacity {...props} />,
+          tabBarButton: props => <TouchableOpacity {...props}/>,
         })}>
         <Tab.Screen
           name="Home"

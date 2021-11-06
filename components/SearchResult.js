@@ -19,18 +19,18 @@ export default function Song({listProps, style}) {
   const [artistsText, setArtists] = React.useState('');
   React.useEffect(() => {
     setPrimary(
-      listProps.youtubeId === nowPlaying?.id
+      listProps.youtubeId === nowPlaying?.youtubeId
         ? scheme.colorPrimary
         : 'rgba(255,255,255,0.8)',
     );
     setArtists(ytm.joinArtists(listProps.artists));
-  }, [nowPlaying.id]);
+  }, [nowPlaying?.youtubeId]);
   return (
     <TouchableOpacity
       style={{...styles.wrapper, ...style, borderColor: isPrimary}}
       onPress={() => {
         setPaused(true);
-        if (nowPlaying.id !== listProps.youtubeId)
+        if (nowPlaying?.youtubeId !== listProps.youtubeId)
           ytm.getVideoData(listProps.youtubeId).then(data => {
             listProps.thumbnailUrl = ytm.manipulateThumbnailUrl(
               listProps.thumbnailUrl,

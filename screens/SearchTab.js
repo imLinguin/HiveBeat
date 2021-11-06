@@ -6,7 +6,9 @@ import Playlist from './Playlist'
 import {createSharedElementStackNavigator} from 'react-navigation-shared-element'
 
 const Stack = createSharedElementStackNavigator();
-export default function SearchTab() {
+export default function SearchTab({navigation}) {
+
+
   return (
     <Stack.Navigator
       initialRouteName={'SearchHome'}

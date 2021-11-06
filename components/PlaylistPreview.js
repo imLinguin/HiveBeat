@@ -27,7 +27,7 @@ export default function PlaylistPreview({data}) {
         <Image
           source={{uri: data.thumbnailUrl}}
           borderRadius={10}
-          style={{width: 150, height: 150, resizeMode:'contain'}}
+          style={{width: 150, height: 150, borderRadius:10, resizeMode:'contain'}}
           resizeMode={'contain'}
         />
       </SharedElement>

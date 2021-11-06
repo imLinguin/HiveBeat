@@ -31,7 +31,7 @@ function Search({navigation}) {
   const scrollView = useRef(null);
   const input = useRef(null);
   const context = useStore(state=>({setNowPlaying:state.setNowPlaying, setIndex: state.setIndex, setVideoQueue: state.setVideoQueue}), shallow)
-
+  
   useEffect(() => {
     if (inputText)
       ytm.searchSuggestions(inputText).then(r => {
@@ -95,17 +95,16 @@ function Search({navigation}) {
       <View style={styles.topWrapper}>
         <TextInput
           ref={input}
-          style={{color: '#fff', width: '100%'}}
+          style={{color: '#000', width: '100%', backgroundColor:'#fffa', borderRadius:15, marginBottom: 10}}
           value={inputText}
           selectTextOnFocus={true}
-          underlineColorAndroid={scheme.colorPrimary}
           onSubmitEditing={search}
           onFocus={() => setSuggestionsVisibility(true)}
           onBlur={() => setSuggestionsVisibility(false)}
           onChangeText={e => {
             setText(e);
           }}
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor="rgba(0,0,0,0.6)"
           placeholder="Search or paste URL"
           returnKeyType="search"
         />
@@ -122,7 +121,7 @@ function Search({navigation}) {
         {loading === false ? (
           results.map((e, i) => {
             if (e.youtubeId)
-              return <SearchResult key={`${e.youtubeId} ${i}`} listProps={e} />;
+              return <SearchResult key={`${e.youtubeId}searchresults${i}`} listProps={e} />;
             else if (e.albumId)
               return (
                 <AlbumPreview
@@ -133,9 +132,19 @@ function Search({navigation}) {
                 />
               );
             else if (e.playlistId)
-              return <PlaylistPreview key={`${e.playlistId} ${i}`} data={e} />;
+              return (
+                <PlaylistPreview
+                  key={`${e.playlistId}searchresults${i}`}
+                  data={e}
+                />
+              );
             else if (e.artistId)
-              return <ArtistPreview key={`${e.artistId} ${i}`} data={e} />;
+              return (
+                <ArtistPreview
+                  key={`${e.artistId}searchresults${i}`}
+                  data={e}
+                />
+              );
           })
         ) : (
           <Loading
@@ -180,7 +189,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 15,
-    backgroundColor: '#262626',
+    backgroundColor: scheme.headerBg,
     paddingTop: StatusBar.currentHeight,
   },
   suggestions: {
