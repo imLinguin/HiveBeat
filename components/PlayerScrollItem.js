@@ -6,26 +6,32 @@ import ytmusic from '../api/ytmusic';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 
 export default class PlayerScrollItem extends React.Component {
-  isNowPlaying = this.props.index - 1 == this.props.context.nowPlayingIndex;
-  wasNowPlaying = false;
-  lockedGesture = false;
-  artists = ytmusic.joinArtists(this.props.data.artists);
-  translatePos = new Animated.Value(0);
-
-  componentDidUpdate() {
+  constructor(props) {
+    super(props);
     this.isNowPlaying =
       this.props.index - 1 == this.props.context.nowPlayingIndex;
-    this.wasNowPlaying =
-      this.props.index - 1 <= this.props.context.nowPlayingIndex;
+    this.wasNowPlaying = false;
+    this.lockedGesture = false;
+    this.artists = ytmusic.joinArtists(this.props.data.artists);
+    this.translatePos = new Animated.Value(0);
   }
 
   shouldComponentUpdate(newProps) {
-    return (
+    if (
       this.props.IMAGE_SIZE !== newProps.IMAGE_SIZE ||
-      (newProps.context.nowPlayingIndex == this.props.index - 1 &&
-        this.props.data.youtubeId !=
-          newProps.context.nowPlaying.youtubeId)
-    );
+      this.props.context.nowPlaying.youtubeId !=
+        newProps.context.nowPlaying.youtubeId
+    ) {
+      this.isNowPlaying =
+        this.props.index - 1 == this.props.context.nowPlayingIndex;
+      this.wasNowPlaying =
+        this.props.index - 1 <= this.props.context.nowPlayingIndex;
+
+        return true;
+    }
+    else {
+      return false;
+    }
   }
 
   render() {
@@ -46,7 +52,6 @@ export default class PlayerScrollItem extends React.Component {
               this.props.context.setNowPlaying(newObj);
             });
         }}>
-        {console.log(`UPDATE! ${this.props.index - 1}`)}
         <PanGestureHandler
           maxPointers={1}
           minOffsetY={-20}
@@ -63,7 +68,7 @@ export default class PlayerScrollItem extends React.Component {
                     duration: 700,
                     useNativeDriver: true,
                   }).start(() => {
-                    const newQueue = videoQueue;
+                    const newQueue = this.props.context.videoQueue;
                     newQueue.splice(this.props.index - 1, 1);
                     this.props.context.setVideoQueue(newQueue);
                   });

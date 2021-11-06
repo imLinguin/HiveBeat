@@ -73,12 +73,14 @@ export default function Player() {
     context.setPaused(false);
   };
   const nextSong = () => {
-    if (!context.videoQueue[context.nowPlayingIndex + 1] && context.loop != 0) {
-      ytmusic.getVideoData(context.videoQueue[0].youtubeId).then(v => {
-        const newObj = {...context.videoQueue[0], ...v};
-        context.setNowPlaying(newObj);
-        context.setIndex(0);
-      });
+    if (!context.videoQueue[context.nowPlayingIndex + 1] ) {
+      if (context.loop != 0)
+        ytmusic.getVideoData(context.videoQueue[0].youtubeId).then(v => {
+          const newObj = {...context.videoQueue[0], ...v};
+          context.setNowPlaying(newObj);
+          context.setIndex(0);
+        });
+      else
       context.setPaused(true);
     } else {
       const targetIndex = context.nowPlayingIndex + 1;
