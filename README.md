@@ -20,4 +20,9 @@ Privacy focused music app based on YouTube Music's API. Created using React Nati
 - [x] Manage the queue
 - [ ] Create playlists
 - [ ] Add Songs to playlists
+
+## Credits and Special Thanks
+[Olek Baran](https://github.com/olek-arsee) - App design, logo and other graphics
+Kacper Kutyła - For complaining about work in progress features
+
 ### More soon
