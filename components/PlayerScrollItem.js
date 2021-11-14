@@ -27,9 +27,8 @@ export default class PlayerScrollItem extends React.Component {
       this.wasNowPlaying =
         this.props.index - 1 <= this.props.context.nowPlayingIndex;
 
-        return true;
-    }
-    else {
+      return true;
+    } else {
       return false;
     }
   }
@@ -69,7 +68,9 @@ export default class PlayerScrollItem extends React.Component {
                     useNativeDriver: true,
                   }).start(() => {
                     const newQueue = this.props.context.videoQueue;
-                    newQueue.splice(this.props.index - 1, 1);
+                    newQueue[this.props.index - 1].youtubeId ==
+                      this.props.data.youtubeId &&
+                      newQueue.splice(this.props.index - 1, 1);
                     this.props.context.setVideoQueue(newQueue);
                   });
                 } else {

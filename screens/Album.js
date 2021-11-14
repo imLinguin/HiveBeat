@@ -95,9 +95,9 @@ export default function Album({route}) {
             }
           });
         }
+        context.setIndex(0);
         context.setNowPlaying(obj);
         context.setVideoQueue(newQueue);
-        context.setIndex(0);
       });
   };
 

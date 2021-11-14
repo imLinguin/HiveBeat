@@ -5,7 +5,7 @@ import {
   BottomTabBar,
 } from '@react-navigation/bottom-tabs';
 import LinearGradient from 'react-native-linear-gradient';
-import Home from './Home';
+import HomeTab from './HomeTab';
 import Playlists from './Playlists';
 import Player from '../components/Player';
 import scheme from '../assets/scheme';
@@ -52,7 +52,7 @@ export default function Main() {
         })}>
         <Tab.Screen
           name="Home"
-          component={Home}
+          component={HomeTab}
           options={{
             tabBarIcon: ({focused}) => (
               <Image

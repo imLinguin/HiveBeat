@@ -188,7 +188,7 @@ function Artist({route, id, navigation}) {
                   key={`${v.youtubeId}${i}artist_${artist.id}`}
                   onPress={() => {
                     setPaused(true);
-                    if (nowPlaying.id !== v.youtubeId)
+                    if (nowPlaying?.youtubeId !== v.youtubeId)
                       ytmusic.getVideoData(v.youtubeId).then(d => {
                         const obj = {
                           ...v,

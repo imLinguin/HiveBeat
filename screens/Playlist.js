@@ -60,7 +60,7 @@ export default function Playlist({route}) {
 
   const play = index => {
     const v = songs[index];
-    if (context.nowPlaying.id !== v.youtubeId){
+    if (context.nowPlaying?.youtubeId !== v.youtubeId){
       context.setPaused(true);
       ytmusic.getVideoData(v.youtubeId).then(d => {
         let newQueue = [];
@@ -94,9 +94,9 @@ export default function Playlist({route}) {
             }
           });
         }
+        context.setIndex(0);
         context.setVideoQueue(newQueue);
         context.setNowPlaying(obj);
-        context.setIndex(0);
       });
     }
   };

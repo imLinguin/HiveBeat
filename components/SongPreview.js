@@ -8,7 +8,7 @@ export default function SongPreview({data, index}) {
   const nowPlaying = useStore(state=>state.nowPlaying);
   const [isPlaying, setPlaying] = useState(false);
   useEffect(() => {
-    setPlaying(data.youtubeId === nowPlaying.youtubeId);
+    setPlaying(data.youtubeId === nowPlaying?.youtubeId);
   }, [nowPlaying]);
   return (
     <View

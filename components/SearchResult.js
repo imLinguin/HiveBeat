@@ -41,8 +41,8 @@ export default function Song({listProps, style}) {
             ytm.musicSuggestions(listProps.youtubeId).then(dat => {
               dat[0] = nowPlayingObj;
               dat.length > 0 && setVideoQueue(dat);
+              data.lengthSeconds && resetIndex();
               data.lengthSeconds && setNowPlaying(nowPlayingObj);
-              resetIndex(0);
             });
           });
       }}>
