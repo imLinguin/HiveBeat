@@ -44,11 +44,7 @@ function Artist({route, id, navigation}) {
     if (artist) return;
     ytmusic.getArtistData(route.params.id).then(artistData => {
       if (artistData) {
-        artistData.thumbnailUrl = ytmusic.manipulateThumbnailUrl(
-          artistData?.thumbnails[0].url,
-          500,
-          500,
-        );
+        artistData.thumbnailUrl = ytmusic.manipulateThumbnailUrl(artistData?.thumbnails[0].url,500,500)
         setArtist(artistData);
         getColorFromURL(artistData.thumbnailUrl).then(v => {
           if (v) {
@@ -124,7 +120,6 @@ function Artist({route, id, navigation}) {
         </AnimatedCustomText>
       </View>
 
-      {artist ? (
         <Animated.ScrollView
           style={{backgroundColor: scheme.colorBg}}
           contentContainerStyle={{paddingBottom: 120}}
@@ -153,7 +148,7 @@ function Artist({route, id, navigation}) {
               marginTop: StatusBar.currentHeight + 50,
               marginBottom: 20,
             }}>
-            <SharedElement id={`${artist?.songsPlaylistId}.thumbnail`}>
+            <SharedElement id={`${route.params.id}.artistthumbnail`}>
               <Image
                 style={{
                   width: width / 2,
@@ -162,9 +157,9 @@ function Artist({route, id, navigation}) {
                   borderRadius: width / 2,
                   borderColor: '#fff',
                   borderWidth: 4,
+                  resizeMode:'cover'
                 }}
-                resizeMode={'cover'}
-                source={{uri: artist && artist.thumbnailUrl}}
+                source={{uri: route.params.thumbnailUrl || artist?.thumbnailUrl}}
               />
             </SharedElement>
             <CustomText
@@ -178,9 +173,11 @@ function Artist({route, id, navigation}) {
                 textShadowRadius: 25,
                 textAlign: 'center',
               }}>
-              {artist?.name}
+              {route.params.name}
             </CustomText>
           </View>
+        {artist ? (
+          <>
           <ArtistCategory title={'Songs'}>
             {artist?.featuredSongs &&
               artist.featuredSongs.map((v, i) => (
@@ -217,7 +214,9 @@ function Artist({route, id, navigation}) {
                     playlistId: artist.songsPlaylistId,
                     thumbnailUrl: artist.thumbnailUrl,
                     title: `${artist.name} Songs`,
+                    artistId: artist.artistId
                   },
+                  artist:true
                 });
               }}>
               <CustomText
@@ -304,6 +303,7 @@ function Artist({route, id, navigation}) {
           {artist?.description && (
             <ArtistCategory title={'Description'}>
               <CustomText
+                  dataDetectorType={"link"}
                 style={{
                   fontSize: 15,
                   fontWeight: '400',
@@ -318,28 +318,27 @@ function Artist({route, id, navigation}) {
               </CustomText>
             </ArtistCategory>
           )}
+          </>
+          ) : (
+            <Loading
+              style={[
+                {
+                  width,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+              ]}
+            />
+          )}
         </Animated.ScrollView>
-      ) : (
-        <Loading
-          style={[
-            {
-              width,
-              height,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: scheme.colorBg,
-            },
-          ]}
-        />
-      )}
     </View>
   );
 }
 
 Artist.sharedElements = (route, other) => {
   const {data} = other.params;
-  const id = data?.playlistId || data?.albumId || data?.artistId;
-  return [`${id}.thumbnail`];
+  const id = data?.playlistId || data?.albumId || data?.artistId || other.params.id;
+  return [`${id}.thumbnail`, `${id}.artistthumbnail`];
 };
 
 export default Artist;

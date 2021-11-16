@@ -9,7 +9,7 @@ const Stack = createSharedElementStackNavigator();
 export default function HomeTab({navigation}) {
   return (
     <Stack.Navigator
-      initialRouteName={'Home'}
+      initialRouteName={'HomePage'}
       screenOptions={{
         headerShown: false,
         gestureEnabled: false,
@@ -21,7 +21,7 @@ export default function HomeTab({navigation}) {
           };
         },
       }}>
-      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="HomePage" component={Home} />
       <Stack.Screen name="Artist" component={Artist} />
       <Stack.Screen name="Album" component={Album} />
       <Stack.Screen name="Playlist" component={Playlist} />

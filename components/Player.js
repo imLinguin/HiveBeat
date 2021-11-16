@@ -73,15 +73,14 @@ export default function Player() {
     context.setPaused(false);
   };
   const nextSong = () => {
-    if (!context.videoQueue[context.nowPlayingIndex + 1] ) {
+    if (!context.videoQueue[context.nowPlayingIndex + 1]) {
       if (context.loop != 0)
         ytmusic.getVideoData(context.videoQueue[0].youtubeId).then(v => {
           const newObj = {...context.videoQueue[0], ...v};
           context.setNowPlaying(newObj);
           context.setIndex(0);
         });
-      else
-      context.setPaused(true);
+      else context.setPaused(true);
     } else {
       const targetIndex = context.nowPlayingIndex + 1;
       context.increaseIndex();
@@ -194,10 +193,9 @@ export default function Player() {
         <Video
           ref={videoRef}
           onEnd={() => {
-            if(context.loop == 2){
+            if (context.loop == 2) {
               videoRef.current.seek(0);
-            }
-            else{
+            } else {
               nextSong();
             }
           }}
@@ -391,6 +389,8 @@ export default function Player() {
                     navigation.navigate('Artist', {
                       id: context.videoQueue[context.nowPlayingIndex].artists[0]
                         ?.id,
+                      name: context.videoQueue[context.nowPlayingIndex].artists[0]
+                      ?.name,
                     });
                   }}>
                   <CustomText
@@ -435,10 +435,11 @@ export default function Player() {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                   }}>
-                  <CustomText style={[styles.text, {fontWeight:'700'}]}>
+                  <CustomText style={[styles.text, {fontWeight: '700'}]}>
                     {getReadableTime(sliderData.currentTime)}
                   </CustomText>
-                  <CustomText style={[styles.text,{fontWeight: '300', opacity:0.7}]}>
+                  <CustomText
+                    style={[styles.text, {fontWeight: '300', opacity: 0.7}]}>
                     {getReadableTime(sliderData.seekableDuration)}
                   </CustomText>
                 </View>
@@ -518,17 +519,22 @@ export default function Player() {
                     name="Skip"
                   />
                 </Pressable>
-                <Pressable onPress={(e)=>{
-                  context.changeLoop();
-                  let newVal = context.loop + 1
-                  if(newVal == 3)
-                    newVal = 0 
-                  ToastAndroid.showWithGravity(
-                    newVal != 0 ? (newVal == 1 ? 'Queue Looping' : 'Song Looping') : 'Looping Disabled',
-                    ToastAndroid.SHORT,
-                    ToastAndroid.CENTER,  
-                  );
-                }} style={{padding: 5}}>
+                <Pressable
+                  onPress={e => {
+                    context.changeLoop();
+                    let newVal = context.loop + 1;
+                    if (newVal == 3) newVal = 0;
+                    ToastAndroid.showWithGravity(
+                      newVal != 0
+                        ? newVal == 1
+                          ? 'Queue Looping'
+                          : 'Song Looping'
+                        : 'Looping Disabled',
+                      ToastAndroid.SHORT,
+                      ToastAndroid.CENTER,
+                    );
+                  }}
+                  style={{padding: 5}}>
                   <CustomText style={styles.text}>L</CustomText>
                 </Pressable>
               </View>

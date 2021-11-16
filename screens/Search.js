@@ -6,18 +6,14 @@ import {
   StyleSheet,
   StatusBar,
   ScrollView,
-  Image,
   useWindowDimensions,
 } from 'react-native';
 
 import Loading from '../components/Loading';
 import ytm from '../api/ytmusic';
 import scheme from '../assets/scheme';
-import SearchResult from '../components/SearchResult';
+import {Song, Album, Artist, Playlist} from '../components/SearchResult';
 import CustomText from '../components/CustomText';
-import ArtistPreview from '../components/ArtistPreview';
-import AlbumPreview from '../components/AlbumPreview';
-import PlaylistPreview from '../components/PlaylistPreview';
 import shallow from 'zustand/shallow';
 import useStore from '../context';
 
@@ -114,35 +110,37 @@ function Search({navigation}) {
         style={styles.results}
         contentContainerStyle={{
           paddingBottom: 210,
-          flexDirection: 'row',
-          flexWrap: 'wrap',
+          flexDirection: 'column',
           justifyContent: 'center',
         }}>
         {loading === false ? (
           results.map((e, i) => {
             if (e.youtubeId)
-              return <SearchResult key={`${e.youtubeId}searchresults${i}`} listProps={e} />;
+              return <Song key={`${e.youtubeId}searchresults${i}`} listProps={e} index={i} />;
             else if (e.albumId)
               return (
-                <AlbumPreview
+                <Album
                   key={`${e.albumId} ${i}`}
-                  data={e}
+                  listProps={e}
                   navigation={navigation}
                   index={i}
                 />
               );
             else if (e.playlistId)
               return (
-                <PlaylistPreview
+                <Playlist
                   key={`${e.playlistId}searchresults${i}`}
-                  data={e}
+                  navigation={navigation}
+                  listProps={e}
                 />
               );
             else if (e.artistId)
               return (
-                <ArtistPreview
+                <Artist
                   key={`${e.artistId}searchresults${i}`}
-                  data={e}
+                  navigation={navigation}
+                  listProps={e}
+                  index={i}
                 />
               );
           })
@@ -179,7 +177,7 @@ function Search({navigation}) {
 Search.sharedElements = (route, otherRoute, x) => {
   const {data} = otherRoute.params
   const id = data?.playlistId || data?.albumId || data?.artistId
-    return [`${id}.thumbnail`];
+  return [{id:`${id}.thumbnail`, resize: 'none'}, `${otherRoute.params.id}.artistthumbnail`];
 }
 
 export default Search

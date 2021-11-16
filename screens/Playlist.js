@@ -43,24 +43,26 @@ export default function Playlist({route}) {
   const IMAGE_SIZE = width / 1.6;
   useEffect(() => {
     if (songs.length > 0) return;
-    ytmusic.getPlaylistSongs(route.params.data.playlistId).then(playlistData => {
-      if (playlistData) {
-        setSongs(playlistData);
-        getColorFromURL(route.params.data?.thumbnailUrl).then(v => {
-          setDominantColor(v);
-          Animated.timing(gradientVisibility, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }).start();
-        });
-      }
-    });
+    ytmusic
+      .getPlaylistSongs(route.params.data.playlistId)
+      .then(playlistData => {
+        if (playlistData) {
+          setSongs(playlistData);
+          getColorFromURL(route.params.data?.thumbnailUrl).then(v => {
+            setDominantColor(v);
+            Animated.timing(gradientVisibility, {
+              toValue: 1,
+              duration: 1000,
+              useNativeDriver: true,
+            }).start();
+          });
+        }
+      });
   }, []);
 
   const play = index => {
     const v = songs[index];
-    if (context.nowPlaying?.youtubeId !== v.youtubeId){
+    if (context.nowPlaying?.youtubeId !== v.youtubeId) {
       context.setPaused(true);
       ytmusic.getVideoData(v.youtubeId).then(d => {
         let newQueue = [];
@@ -72,7 +74,7 @@ export default function Playlist({route}) {
         const obj = {
           ...d,
           ...v,
-          author:ytmusic.joinArtists(v.artists)
+          author: ytmusic.joinArtists(v.artists),
         };
         newQueue.push(obj);
         if (context.shuffle) {
@@ -203,20 +205,37 @@ export default function Playlist({route}) {
               outputRange: [1, 0, 0],
             }),
           }}>
-          <SharedElement id={`${route.params.data?.playlistId}.thumbnail`}>
+          <SharedElement
+            id={`${route.params.data?.artistId}.${
+              route.params.artist && 'artist'
+            }thumbnail`}>
             <Image
               source={{uri: route.params.data?.thumbnailUrl}}
-              style={{width: IMAGE_SIZE, height: IMAGE_SIZE, borderRadius:10, resizeMode:'contain'}}
+              style={{
+                width: IMAGE_SIZE,
+                height: IMAGE_SIZE,
+                borderRadius: 10,
+                resizeMode: 'contain',
+              }}
               borderRadius={10}
               resizeMode={'contain'}
             />
           </SharedElement>
-            <TextTicker numberOfLines={1} loop duration={20000} marqueeDelay={3000} easing={Easing.linear} bounce={false} style={[styles.metadata_title]}>
-              {route.params.data?.title}
-            </TextTicker>
-          {route.params.data?.totalSongs && <CustomText style={styles.metadata_year}>
-            {route.params.data?.totalSongs + ' songs'}
-          </CustomText>}
+          <TextTicker
+            numberOfLines={1}
+            loop
+            duration={20000}
+            marqueeDelay={3000}
+            easing={Easing.linear}
+            bounce={false}
+            style={[styles.metadata_title]}>
+            {route.params.data?.title}
+          </TextTicker>
+          {route.params.data?.totalSongs && (
+            <CustomText style={styles.metadata_year}>
+              {route.params.data?.totalSongs + ' songs'}
+            </CustomText>
+          )}
         </Animated.View>
       </View>
       <Animated.ScrollView
