@@ -43,21 +43,25 @@ export default function Playlist({route}) {
   const IMAGE_SIZE = width / 1.6;
   useEffect(() => {
     if (songs.length > 0) return;
-    ytmusic
-      .getPlaylistSongs(route.params.data.playlistId)
-      .then(playlistData => {
-        if (playlistData) {
+    ytmusic.getPlaylistSongs(route.params.id).then(playlistData => {
+      if (playlistData) {
+        getColorFromURL(
+          ytmusic.manipulateThumbnailUrl(
+            route.params.data?.thumbnailUrl,
+            50,
+            50,
+          ),
+        ).then(v => {
+          setDominantColor(v);
+          Animated.timing(gradientVisibility, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }).start();
           setSongs(playlistData);
-          getColorFromURL(route.params.data?.thumbnailUrl).then(v => {
-            setDominantColor(v);
-            Animated.timing(gradientVisibility, {
-              toValue: 1,
-              duration: 1000,
-              useNativeDriver: true,
-            }).start();
-          });
-        }
-      });
+        });
+      }
+    });
   }, []);
 
   const play = index => {
@@ -66,11 +70,6 @@ export default function Playlist({route}) {
       context.setPaused(true);
       ytmusic.getVideoData(v.youtubeId).then(d => {
         let newQueue = [];
-        v.thumbnailUrl = ytmusic.manipulateThumbnailUrl(
-          v.thumbnailUrl,
-          544,
-          544,
-        );
         const obj = {
           ...d,
           ...v,
@@ -206,8 +205,8 @@ export default function Playlist({route}) {
             }),
           }}>
           <SharedElement
-            id={`${route.params.data?.artistId}.${
-              route.params.artist && 'artist'
+            id={`${route.params.id}.${
+              route.params?.artist ? 'artist' : ''
             }thumbnail`}>
             <Image
               source={{uri: route.params.data?.thumbnailUrl}}

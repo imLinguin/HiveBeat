@@ -149,7 +149,7 @@ export function Album({listProps, navigation, index}) {
       <TouchableOpacity
         style={{...styles.wrapper, borderColor: isPrimary}}
         onPress={() => {
-          navigation.push('Album', {data: listProps});
+          navigation.push('Album', {data: listProps, id: listProps.albumId});
         }}>
         <SharedElement id={`${listProps.albumId}.thumbnail`}>
           <Animated.Image
@@ -235,12 +235,12 @@ export function Playlist({listProps, navigation, index}) {
       <TouchableOpacity
         style={{...styles.wrapper, borderColor: isPrimary}}
         onPress={() => {
-          navigation.push('Playlist', {data: listProps});
+          navigation.push('Playlist', {data: listProps, id:listProps.playlistId});
         }}>
         <SharedElement id={`${listProps.playlistId}.thumbnail`}>
           <Animated.Image
             source={{uri: listProps.thumbnailUrl}}
-            style={{...styles.image, resizeMode: 'contain'}}
+            style={{...styles.image, resizeMode: 'contain', borderRadius:10}}
             borderRadius={10}
           />
         </SharedElement>

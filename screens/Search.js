@@ -16,6 +16,7 @@ import {Song, Album, Artist, Playlist} from '../components/SearchResult';
 import CustomText from '../components/CustomText';
 import shallow from 'zustand/shallow';
 import useStore from '../context';
+import { getSharedElements } from '../api/getSharedElements';
 
 function Search({navigation}) {
   const {width, height} = useWindowDimensions();
@@ -174,11 +175,7 @@ function Search({navigation}) {
   );
 }
 
-Search.sharedElements = (route, otherRoute, x) => {
-  const {data} = otherRoute.params
-  const id = data?.playlistId || data?.albumId || data?.artistId
-  return [{id:`${id}.thumbnail`, resize: 'none'}, `${otherRoute.params.id}.artistthumbnail`];
-}
+Search.sharedElements = getSharedElements
 
 export default Search
 const styles = StyleSheet.create({

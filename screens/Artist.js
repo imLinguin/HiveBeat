@@ -335,10 +335,4 @@ function Artist({route, id, navigation}) {
   );
 }
 
-Artist.sharedElements = (route, other) => {
-  const {data} = other.params;
-  const id = data?.playlistId || data?.albumId || data?.artistId || other.params.id;
-  return [`${id}.thumbnail`, `${id}.artistthumbnail`];
-};
-
 export default Artist;

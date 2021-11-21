@@ -27,21 +27,26 @@ export default function PlaylistPreview({data}) {
         <Image
           source={{uri: data.thumbnailUrl}}
           borderRadius={10}
-          style={{width: 150, height: 150, borderRadius:10, resizeMode:'contain'}}
+          style={{
+            width: 150,
+            height: 150,
+            borderRadius: 10,
+            resizeMode: 'contain',
+          }}
           resizeMode={'contain'}
         />
       </SharedElement>
-        <CustomText
-          numberOfLines={2}
-          style={{
-            fontSize: 15,
-            fontWeight:"800",
-            textAlign: 'center',
-            color: scheme.textColor,
-            paddingVertical: 10,
-          }}>
-          {data.title}
-        </CustomText>
+      <CustomText
+        numberOfLines={2}
+        style={{
+          fontSize: 15,
+          fontWeight: '800',
+          textAlign: 'center',
+          color: scheme.textColor,
+          paddingVertical: 10,
+        }}>
+        {data.title}
+      </CustomText>
     </TouchableOpacity>
   );
 }
