@@ -19,6 +19,8 @@ const useStore = create(set => ({
   setVideoQueue: value => set(state => ({videoQueue: value})),
   loop: 0,
   changeLoop: () => set(state => {let next = state.loop+1; if(next==3){next = 0}; return {loop:next}}),
+  playlistModalVisible:false,
+  switchPlaylistModalVisibility: () => set(state => ({playlistModalVisible: !state.playlistModalVisible}))
 }));
 
 export default useStore;

@@ -10,6 +10,7 @@ import Playlists from './Playlists';
 import Player from '../components/Player';
 import scheme from '../assets/scheme';
 import SearchTab from './SearchTab';
+import PlaylistAddModal from '../components/PlaylistAddDialog';
 
 
 const Tab = createBottomTabNavigator();
@@ -41,7 +42,6 @@ export default function Main() {
             elevation: 0,
             backgroundColor: 'transparent',
             borderTopWidth: 0,
-            bottom: 0,
             position: 'absolute',
           },
           headerShown: false,
@@ -88,6 +88,7 @@ export default function Main() {
         />
       </Tab.Navigator>
       <Player />
+      <PlaylistAddModal/>
     </>
   );
 }
