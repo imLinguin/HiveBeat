@@ -22,6 +22,7 @@ import {getColorFromURL} from 'rn-dominant-color';
 import useStore from '../context';
 import {determineDark} from '../api/utils';
 import LinearGradient from 'react-native-linear-gradient';
+import {getSharedElements} from '../api/getSharedElements'
 
 function Artist({route, id, navigation}) {
   const {setPaused, setNowPlaying, setVideoQueue, nowPlaying, setIndex} =
@@ -178,9 +179,9 @@ function Artist({route, id, navigation}) {
           </View>
         {artist ? (
           <>
+          {artist?.featuredSongs.length > 0 &&
           <ArtistCategory title={'Songs'}>
-            {artist?.featuredSongs &&
-              artist.featuredSongs.map((v, i) => (
+              {artist.featuredSongs.map((v, i) => (
                 <TouchableOpacity
                   key={`${v.youtubeId}${i}artist_${artist.id}`}
                   onPress={() => {
@@ -205,7 +206,7 @@ function Artist({route, id, navigation}) {
                   <SongPreview data={v} index={i} />
                 </TouchableOpacity>
               ))}
-          </ArtistCategory>
+          </ArtistCategory>}
           {artist.songsPlaylistId && (
             <TouchableOpacity
               onPress={() => {
@@ -334,5 +335,7 @@ function Artist({route, id, navigation}) {
     </View>
   );
 }
+
+Artist.sharedElements = getSharedElements;
 
 export default Artist;

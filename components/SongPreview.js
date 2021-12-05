@@ -5,7 +5,7 @@ import useStore from '../context';
 import CustomText from './CustomText';
 
 export default function SongPreview({data, index}) {
-  const nowPlaying = useStore(state=>state.nowPlaying);
+  const nowPlaying = useStore(state => state.nowPlaying);
   const [isPlaying, setPlaying] = useState(false);
   useEffect(() => {
     setPlaying(data.youtubeId === nowPlaying?.youtubeId);
@@ -34,17 +34,25 @@ export default function SongPreview({data, index}) {
           borderRadius={5}
           resizeMode={'contain'}
         />
-        <CustomText
-          numberOfLines={3}
+        <View
           style={{
-            color: isPlaying ? scheme.colorPrimary : scheme.textColor,
-            fontWeight: '600',
+            flexDirection: 'column',
             paddingHorizontal: 15,
-            fontSize: 15,
             width: '65%',
           }}>
-          {data.title}
-        </CustomText>
+          <CustomText
+            numberOfLines={3}
+            style={{
+              color: isPlaying ? scheme.colorPrimary : scheme.textColor,
+              fontWeight: '600',
+              fontSize: 15,
+            }}>
+            {data.title}
+          </CustomText>
+          <CustomText style={{
+            fontWeight:'200',
+          }}>{nowPlaying.author}</CustomText>
+        </View>
       </View>
       <CustomText
         style={{color: scheme.textColor, fontWeight: '200', fontSize: 15}}>

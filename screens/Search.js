@@ -113,6 +113,7 @@ function Search({navigation}) {
           paddingBottom: 210,
           flexDirection: 'column',
           justifyContent: 'center',
+          alignItems:'center'
         }}>
         {loading === false ? (
           results.map((e, i) => {
