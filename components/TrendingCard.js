@@ -1,24 +1,18 @@
 import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-} from 'react-native';
+import {View, TouchableOpacity, Image, StyleSheet} from 'react-native';
 import scheme from '../assets/scheme';
 import ytm from '../api/ytmusic';
 import useStore from '../context';
 import CustomText from './CustomText';
 export default function TrendingCard({listProps, style}) {
-  const setNowPlaying = useStore(state=>state.setNowPlaying);
+  const setNowPlaying = useStore(state => state.setNowPlaying);
   return (
     <TouchableOpacity
       style={{...styles.wrapper, ...style}}
       onPress={() => {
-        ytm.getVideoData(listProps.item.videoId).then(data=>{
+        ytm.getVideoData(listProps.item.videoId).then(data => {
           data.title && setNowPlaying(data);
         });
-        
       }}>
       <Image
         source={{uri: listProps.item.videoThumbnails[0].url}}
@@ -26,7 +20,9 @@ export default function TrendingCard({listProps, style}) {
       />
       <View style={styles.dataWrapper}>
         <CustomText style={styles.titleText}>{listProps.item.title}</CustomText>
-        <CustomText style={styles.authorText}>{listProps.item.author}</CustomText>
+        <CustomText style={styles.authorText}>
+          {listProps.item.author}
+        </CustomText>
       </View>
     </TouchableOpacity>
   );

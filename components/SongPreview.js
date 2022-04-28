@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View, Image} from 'react-native';
+import ytmusic from '../api/ytmusic';
 import scheme from '../assets/scheme';
 import useStore from '../context';
 import CustomText from './CustomText';
@@ -7,8 +8,10 @@ import CustomText from './CustomText';
 export default function SongPreview({data, index}) {
   const nowPlaying = useStore(state => state.nowPlaying);
   const [isPlaying, setPlaying] = useState(false);
+  const [author, setAuthor] = useState("");
   useEffect(() => {
     setPlaying(data.youtubeId === nowPlaying?.youtubeId);
+    setAuthor(ytmusic.joinArtists(data.artists))
   }, [nowPlaying]);
   return (
     <View
@@ -51,7 +54,7 @@ export default function SongPreview({data, index}) {
           </CustomText>
           <CustomText style={{
             fontWeight:'200',
-          }}>{nowPlaying.author}</CustomText>
+          }}>{author}</CustomText>
         </View>
       </View>
       <CustomText

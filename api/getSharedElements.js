@@ -5,8 +5,18 @@ export function getSharedElements(route, otherRoute, showing) {
     otherRoute.params?.data?.albumId ||
     otherRoute.params?.data?.artistId;
 
-  console.log(id);
-  if (!id) return [];
+  if (!id) {
+    return [];
+  }
+  console.log(
+    `Route ${route.params.name}`,
+    `OtherRoute: ${otherRoute.params.name}`,
+  );
+
+  if (route.name == 'Artist' && showing) {
+    return [`${route.params.id}.artistthumbnail`];
+  }
+
   return [
     {id: `${id}.thumbnail`, animation: 'move'},
     {id: `${id}.artistthumbnail`, animation: 'move'},

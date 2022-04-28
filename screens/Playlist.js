@@ -62,7 +62,12 @@ export default function Playlist({route}) {
         });
       }
     });
-  }, []);
+  }, [
+    gradientVisibility,
+    route.params.data?.thumbnailUrl,
+    route.params.id,
+    songs.length,
+  ]);
 
   const play = index => {
     const v = songs[index];

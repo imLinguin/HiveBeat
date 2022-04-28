@@ -11,7 +11,7 @@ export default function ArtistPreview({data}) {
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.push('Artist', { ...data, id: data.artistId});
+        navigation.push('Artist', {...data, id: data.artistId});
       }}
       style={{
         width: 150,
@@ -22,7 +22,7 @@ export default function ArtistPreview({data}) {
       <SharedElement id={`${data.artistId}.artistthumbnail`}>
         <Image
           source={{uri: data.thumbnailUrl}}
-          style={{width: 150, height: 150, borderRadius:200}}
+          style={{width: 150, height: 150, borderRadius: 200}}
         />
       </SharedElement>
       <CustomText

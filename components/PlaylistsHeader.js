@@ -7,9 +7,10 @@ export default function PlaylistsHeader({navigation, context}) {
   return (
     <View style={styles.wrapper} blurRadius={25}>
       <View style={{flexDirection: 'row'}}>
-        <Pressable onPress={()=>{
+        <Pressable
+          onPress={() => {
             context.switchPlaylistModalVisibility();
-        }}>
+          }}>
           <CustomText style={styles.text}>+</CustomText>
         </Pressable>
       </View>
@@ -27,7 +28,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingTop: StatusBar.currentHeight + 10,
     zIndex: 2,
-    width: '100%',
     width: '100%',
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderBottomLeftRadius: 10,

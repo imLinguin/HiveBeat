@@ -2,25 +2,24 @@ import React from 'react';
 import Search from './Search';
 import Artist from './Artist';
 import Album from './Album';
-import Playlist from './Playlist'
-import {createSharedElementStackNavigator} from 'react-navigation-shared-element'
+import Playlist from './Playlist';
+import {createSharedElementStackNavigator} from 'react-navigation-shared-element';
 
 const Stack = createSharedElementStackNavigator();
 export default function SearchTab({navigation}) {
-
-
   return (
     <Stack.Navigator
       initialRouteName={'SearchHome'}
-      screenOptions={{headerShown: false,
-      gestureEnabled:false,
-      cardStyleInterpolator: ({current:{progress}})=>{
-        return {
-          cardStyle:{
-            opacity: progress
-          }
-        }
-      }
+      screenOptions={{
+        headerShown: false,
+        gestureEnabled: false,
+        cardStyleInterpolator: ({current: {progress}}) => {
+          return {
+            cardStyle: {
+              opacity: progress,
+            },
+          };
+        },
       }}>
       <Stack.Screen name="SearchHome" component={Search} />
       <Stack.Screen name="Artist" component={Artist} />

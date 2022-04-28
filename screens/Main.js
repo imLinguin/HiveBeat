@@ -12,10 +12,9 @@ import scheme from '../assets/scheme';
 import SearchTab from './SearchTab';
 import PlaylistAddModal from '../components/PlaylistAddDialog';
 
-
 const Tab = createBottomTabNavigator();
 export default function Main() {
-  const {width, height} = useWindowDimensions();
+  const {width} = useWindowDimensions();
   return (
     <>
       <Tab.Navigator
@@ -48,7 +47,7 @@ export default function Main() {
           tabBarShowLabel: true,
           tabBarActiveTintColor: scheme.colorPrimary,
           tabBarHideOnKeyboard: true,
-          tabBarButton: props => <TouchableOpacity {...props}/>,
+          tabBarButton: props => <TouchableOpacity {...props} />,
         })}>
         <Tab.Screen
           name="Home"
@@ -88,7 +87,7 @@ export default function Main() {
         />
       </Tab.Navigator>
       <Player />
-      <PlaylistAddModal/>
+      <PlaylistAddModal />
     </>
   );
 }

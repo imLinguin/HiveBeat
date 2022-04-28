@@ -28,7 +28,7 @@ export default function Playlists({navigation}) {
         console.log(playlists.length);
       }
     });
-  }, [context.playlistModalvisible]);
+  }, [context.playlistModalvisible, playlists.length, storage]);
   const styles = StyleSheet.create({
     wrapper: {
       backgroundColor: scheme.colorBg,
@@ -36,8 +36,8 @@ export default function Playlists({navigation}) {
       height,
     },
     playlists: {
-      zIndex:2
-    }
+      zIndex: 2,
+    },
   });
   return (
     <ScrollView
@@ -57,7 +57,9 @@ export default function Playlists({navigation}) {
       />
       <View style={styles.playlists}>
         {playlists.length > 0 &&
-          playlists.map((item,index) => <CustomText key={index+"playlists"}>{item.name}</CustomText>)}
+          playlists.map((item, index) => (
+            <CustomText key={index + 'playlists'}>{item.name}</CustomText>
+          ))}
       </View>
     </ScrollView>
   );

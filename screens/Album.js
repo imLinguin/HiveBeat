@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
-  Text,
   useWindowDimensions,
   Animated,
   StyleSheet,
@@ -32,6 +31,7 @@ export default function Album({route}) {
       setVideoQueue: state.setVideoQueue,
       shuffle: state.shuffle,
       nowPlaying: state.nowPlaying,
+      setPlayingFrom: state.setPlayingFrom,
     }),
     shallow,
   );
@@ -39,7 +39,7 @@ export default function Album({route}) {
   const [dominantColor, setDominantColor] = useState('#363636FF');
   const gradientVisibility = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
-  const {width, height} = useWindowDimensions();
+  const {width} = useWindowDimensions();
   const IMAGE_SIZE = width / 1.6;
   useEffect(() => {
     if (songs.length > 0) return;
@@ -51,17 +51,22 @@ export default function Album({route}) {
           Animated.timing(gradientVisibility, {
             toValue: 1,
             duration: 1000,
-            useNativeDriver:true,
-          }).start()
+            useNativeDriver: true,
+          }).start();
         });
       }
     });
-  }, []);
+  }, [
+    gradientVisibility,
+    route.params.data.albumId,
+    route.params.data?.thumbnailUrl,
+    songs.length,
+  ]);
 
   const play = index => {
     const v = songs[index];
     context.setPaused(true);
-    if (context.nowPlaying.id !== v.youtubeId)
+    if (context.nowPlaying.id !== v.youtubeId) {
       ytmusic.getVideoData(v.youtubeId).then(d => {
         let newQueue = [];
         v.thumbnailUrl = ytmusic.manipulateThumbnailUrl(
@@ -97,8 +102,10 @@ export default function Album({route}) {
         }
         context.setIndex(0);
         context.setNowPlaying(obj);
+        context.setPlayingFrom({id: obj.id, type: 'album'});
         context.setVideoQueue(newQueue);
       });
+    }
   };
 
   return (
@@ -206,13 +213,23 @@ export default function Album({route}) {
           <SharedElement id={`${route.params.data.albumId}.thumbnail`}>
             <Image
               source={{uri: route.params.data?.thumbnailUrl}}
-              style={{width: IMAGE_SIZE, height: IMAGE_SIZE, borderRadius:10, resizeMode:'contain'}}
+              style={{
+                width: IMAGE_SIZE,
+                height: IMAGE_SIZE,
+                borderRadius: 10,
+                resizeMode: 'contain',
+              }}
               borderRadius={10}
             />
           </SharedElement>
-            <TextTicker loop duration={10000} marqueeDelay={3000} bounce={false} style={styles.metadata_title}>
-              {route.params.data?.title}
-            </TextTicker>
+          <TextTicker
+            loop
+            duration={10000}
+            marqueeDelay={3000}
+            bounce={false}
+            style={styles.metadata_title}>
+            {route.params.data?.title}
+          </TextTicker>
           <CustomText style={styles.metadata_year}>
             {route.params.data?.year}
           </CustomText>

@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     flexDirection: 'row',
-    borderRadius: 20,
+    borderRadius: 15,
     borderColor: scheme.colorPrimary,
     borderWidth: 2,
   },

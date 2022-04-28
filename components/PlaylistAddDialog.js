@@ -9,22 +9,22 @@ export default function PlaylistAddDialog() {
     visible: store.playlistModalVisible,
     setVisible: store.switchPlaylistModalVisibility,
   }));
-  const [value, setValue] = React.useState("")
+  const [value, setValue] = React.useState('');
   const createPlaylist = () => {
     AsyncStorage.getItem('playlists', (err, result) => {
       if (err) return;
-      const newPlaylist = {name: value, items:[]};
+      const newPlaylist = {name: value, items: []};
       let newPlaylists = [newPlaylist];
-      result && (newPlaylists = [...JSON.parse(result), ...newPlaylist])
-      AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists))
-      setVisible()
+      result && (newPlaylists = [...JSON.parse(result), ...newPlaylist]);
+      AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
+      setVisible();
     });
   };
   return (
     <Dialog.Container visible={visible} onBackdropPress={setVisible}>
       <Dialog.Title>Create New Playlist</Dialog.Title>
       <Dialog.Input
-        onTextInput={(e)=>setValue(e.nativeEvent.text)}
+        onTextInput={e => setValue(e.nativeEvent.text)}
         underlineColorAndroid={scheme.colorPrimary}
         placeholder={'Name for a New Playlist'}></Dialog.Input>
       <Dialog.Button label={'CANCEL'} onPress={setVisible} color={'white'} />

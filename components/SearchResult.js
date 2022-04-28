@@ -15,17 +15,24 @@ import Loading from './Loading';
 import {SharedElement} from 'react-navigation-shared-element';
 
 export function Song({listProps, style, index}) {
-  const {nowPlaying, setNowPlaying, setVideoQueue, resetIndex, setPaused} =
-    useStore(
-      state => ({
-        nowPlaying: state.nowPlaying,
-        setNowPlaying: state.setNowPlaying,
-        setVideoQueue: state.setVideoQueue,
-        resetIndex: state.resetIndex,
-        setPaused: state.setPaused,
-      }),
-      shallow,
-    );
+  const {
+    nowPlaying,
+    setNowPlaying,
+    setVideoQueue,
+    resetIndex,
+    setPaused,
+    setPlayingFrom,
+  } = useStore(
+    state => ({
+      nowPlaying: state.nowPlaying,
+      setNowPlaying: state.setNowPlaying,
+      setVideoQueue: state.setVideoQueue,
+      resetIndex: state.resetIndex,
+      setPaused: state.setPaused,
+      setPlayingFrom: state.setPlayingFrom,
+    }),
+    shallow,
+  );
   const [isPrimary, setPrimary] = React.useState('rgba(255,255,255,1)');
   const [loading, setLoading] = React.useState(false);
   const [artistsText, setArtists] = React.useState('');
@@ -38,7 +45,7 @@ export function Song({listProps, style, index}) {
       toValue: 1,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [animatedFade, index]);
 
   React.useEffect(() => {
     setPrimary(
@@ -47,7 +54,7 @@ export function Song({listProps, style, index}) {
         : 'rgba(255,255,255,1)',
     );
     setArtists(ytm.joinArtists(listProps.artists));
-  }, [nowPlaying?.youtubeId]);
+  }, [listProps.artists, listProps.youtubeId, nowPlaying?.youtubeId]);
 
   return (
     <Animated.View style={{opacity: animatedFade}}>
@@ -74,6 +81,7 @@ export function Song({listProps, style, index}) {
                 dat.length > 0 && setVideoQueue(dat);
                 data.lengthSeconds && resetIndex();
                 data.lengthSeconds && setNowPlaying(nowPlayingObj);
+                setPlayingFrom({});
                 setLoading(false);
               });
             });
@@ -109,7 +117,7 @@ export function Song({listProps, style, index}) {
             style={{...styles.titleText, color: isPrimary, fontWeight: '700'}}>
             {listProps.title}
           </CustomText>
-          <View style={{flexDirection:'row', alignItems:'center'}}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <CustomText style={styles.authorText}>
               Song • {artistsText}
             </CustomText>
@@ -142,7 +150,7 @@ export function Album({listProps, navigation, index}) {
       toValue: 1,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [animatedFade, index]);
   // TODO: Detecting if its being played from that Album
   return (
     <Animated.View style={{opacity: animatedFade}}>
@@ -193,7 +201,7 @@ export function Artist({listProps, navigation, index}) {
       toValue: 1,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [animatedFade, index]);
   return (
     <Animated.View style={{opacity: animatedFade}}>
       <TouchableOpacity
@@ -228,19 +236,22 @@ export function Playlist({listProps, navigation, index}) {
       toValue: 1,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [animatedFade, index]);
   // TODO: Detecting if its being played from that Album
   return (
     <Animated.View style={{opacity: animatedFade}}>
       <TouchableOpacity
         style={{...styles.wrapper, borderColor: isPrimary}}
         onPress={() => {
-          navigation.push('Playlist', {data: listProps, id:listProps.playlistId});
+          navigation.push('Playlist', {
+            data: listProps,
+            id: listProps.playlistId,
+          });
         }}>
         <SharedElement id={`${listProps.playlistId}.thumbnail`}>
           <Animated.Image
             source={{uri: listProps.thumbnailUrl}}
-            style={{...styles.image, resizeMode: 'contain', borderRadius:10}}
+            style={{...styles.image, resizeMode: 'contain', borderRadius: 10}}
             borderRadius={10}
           />
         </SharedElement>

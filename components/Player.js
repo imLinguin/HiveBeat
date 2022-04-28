@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useRef, useState, useEffect, useCallback} from 'react';
 import {
   View,
   StyleSheet,
@@ -18,7 +18,7 @@ import Slider from '@react-native-community/slider';
 import MusicControl from 'react-native-music-control';
 import TextTicker from 'react-native-text-ticker';
 import SvgIcon from 'react-native-svg-icon';
-import {PanGestureHandler, State} from 'react-native-gesture-handler';
+import {PanGestureHandler} from 'react-native-gesture-handler';
 import {BlurView} from '@react-native-community/blur';
 import useStore from '../context';
 import icons from '../assets/icons';
@@ -36,10 +36,22 @@ const getReadableTime = seconds => {
   seconds = Math.round(seconds);
   let minutes = Math.floor(seconds / 60);
   let outSec = Math.round(seconds % 60);
-  if (outSec === 60) outSec = 0;
+  if (outSec === 60) {
+    outSec = 0;
+  }
   outSec = outSec < 10 ? '0' + outSec : outSec;
   return `${minutes}:${outSec}`;
 };
+
+function easeInOutExpo(x) {
+  return x === 0
+    ? 0
+    : x === 1
+    ? 1
+    : x < 0.5
+    ? Math.pow(2, 20 * x - 10) / 2
+    : (2 - Math.pow(2, -20 * x + 10)) / 2;
+}
 
 export default function Player() {
   const navigation = useNavigation();
@@ -72,7 +84,7 @@ export default function Player() {
     setBuffering(true);
     context.setPaused(false);
   };
-  const nextSong = () => {
+  const nextSong = useCallback(() => {
     if (!context.videoQueue[context.nowPlayingIndex + 1]) {
       if (context.loop != 0)
         ytmusic.getVideoData(context.videoQueue[0].youtubeId).then(v => {
@@ -80,7 +92,9 @@ export default function Player() {
           context.setNowPlaying(newObj);
           context.setIndex(0);
         });
-      else context.setPaused(true);
+      else {
+        context.setPaused(true);
+      }
     } else {
       const targetIndex = context.nowPlayingIndex + 1;
       context.increaseIndex();
@@ -97,8 +111,8 @@ export default function Player() {
           context.setNowPlaying(newData);
         });
     }
-  };
-  const previousSong = () => {
+  }, [context]);
+  const previousSong = useCallback(() => {
     if (sliderData.currentTime > 10) {
       videoRef.current.seek(0);
       setSlider({...sliderData, currentTime: 0});
@@ -121,18 +135,19 @@ export default function Player() {
           context.setNowPlaying(newData);
         });
     }
-  };
+  }, [context, sliderData]);
   useEffect(() => {
     imageListRef.current?.scrollToOffset({
       offset: (IMAGE_SIZE + 10) * context.nowPlayingIndex,
       animated: true,
     });
-  }, [context.nowPlayingIndex]);
+  }, [IMAGE_SIZE, context.nowPlayingIndex]);
 
   useEffect(() => {
-    Animated.spring(fullPlayerMov, {
+    Animated.timing(fullPlayerMov, {
       toValue: minimized ? Dimensions.get('screen').height : 0,
-      duration: 400,
+      duration: 600,
+      easing: easeInOutExpo,
       useNativeDriver: true,
     }).start();
     const onBackPress = () => {
@@ -146,7 +161,7 @@ export default function Player() {
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () =>
       BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, [minimized]);
+  }, [fullPlayerMov, minimized]);
 
   useEffect(() => {
     if (context.nowPlaying?.title) {
@@ -174,7 +189,7 @@ export default function Player() {
     } else {
       MusicControl.resetNowPlaying();
     }
-  }, [context.nowPlaying]);
+  }, [context, context.nowPlaying, nextSong, previousSong, sliderData]);
 
   useEffect(() => {
     if (context.nowPlaying?.title) {
@@ -185,7 +200,7 @@ export default function Player() {
         elapsedTime: Number(sliderData?.currentTime) || 0,
       });
     }
-  }, [context.paused]);
+  }, [context.nowPlaying?.title, context.paused, sliderData?.currentTime]);
 
   return (
     <View>
@@ -246,9 +261,10 @@ export default function Player() {
                 if (e.nativeEvent.translationY > 100) {
                   setMinimized(true);
                 } else {
-                  Animated.spring(fullPlayerMov, {
+                  Animated.timing(fullPlayerMov, {
                     toValue: minimized ? Dimensions.get('screen').height : 0,
-                    duration: 400,
+                    duration: 200,
+                    easing: easeInOutExpo,
                     useNativeDriver: true,
                   }).start();
                 }
@@ -312,8 +328,7 @@ export default function Player() {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                flex: 2,
-                height: '100%',
+                paddingTop: 30,
               }}>
               <View style={{height: IMAGE_SIZE, width: '100%'}}>
                 <Animated.FlatList
@@ -389,8 +404,8 @@ export default function Player() {
                     navigation.navigate('Artist', {
                       id: context.videoQueue[context.nowPlayingIndex].artists[0]
                         ?.id,
-                      name: context.videoQueue[context.nowPlayingIndex].artists[0]
-                      ?.name,
+                      name: context.videoQueue[context.nowPlayingIndex]
+                        .artists[0]?.name,
                     });
                   }}>
                   <CustomText
@@ -444,100 +459,85 @@ export default function Player() {
                   </CustomText>
                 </View>
               </View>
-              <View style={styles.full_player_controls}>
+            </View>
+            <View style={styles.full_player_controls}>
+              <Pressable
+                onPress={() => {
+                  previousSong();
+                }}>
+                <Icon width="50" height="50" viewBox="0 0 52 74" name="Back" />
+              </Pressable>
+              <View
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                }}>
                 <Pressable
+                  style={{height: 60, width: 60, justifyContent: 'center'}}
                   onPress={() => {
-                    const newVal = !context.shuffle;
-                    context.setShuffle(newVal);
-                    ToastAndroid.showWithGravity(
-                      newVal ? 'Shuffle Enabled' : 'Shuffle Disabled',
-                      ToastAndroid.SHORT,
-                      ToastAndroid.CENTER,
-                    );
-                  }}
-                  style={{padding: 5}}>
-                  <CustomText style={styles.text}>S</CustomText>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    previousSong();
+                    return context.setPaused(!context.paused);
                   }}>
-                  <Icon
-                    width="50"
-                    height="50"
-                    viewBox="0 0 52 74"
-                    name="Back"
-                  />
-                </Pressable>
-                <View
-                  style={{
-                    marginVertical: 30,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                  }}>
-                  <Icon
-                    style={{position: 'absolute', alignSelf: 'center'}}
-                    width="100"
-                    height="90"
-                    name="PlayBorder"
-                  />
-                  <Pressable
-                    style={{height: 50, width: 55}}
-                    onPress={() => {
-                      return context.setPaused(!context.paused);
-                    }}>
-                    {isBuffering ? (
-                      <Loading style={{width: 55, height: 45}} />
-                    ) : context.paused ? (
-                      <Icon
-                        width="55"
-                        height="50"
-                        viewBox="0 0 46 60"
-                        name="Play"
-                        style={{alignSelf: 'center'}}
-                      />
-                    ) : (
-                      <Icon
-                        width="50"
-                        height="50"
-                        viewBox="0 0 51 61"
-                        name="Pause"
-                        style={{alignSelf: 'center'}}
-                      />
-                    )}
-                  </Pressable>
-                </View>
-                <Pressable
-                  onPress={() => {
-                    nextSong();
-                  }}>
-                  <Icon
-                    width="50"
-                    height="50"
-                    viewBox="0 0 52 74"
-                    name="Skip"
-                  />
-                </Pressable>
-                <Pressable
-                  onPress={e => {
-                    context.changeLoop();
-                    let newVal = context.loop + 1;
-                    if (newVal == 3) newVal = 0;
-                    ToastAndroid.showWithGravity(
-                      newVal != 0
-                        ? newVal == 1
-                          ? 'Queue Looping'
-                          : 'Song Looping'
-                        : 'Looping Disabled',
-                      ToastAndroid.SHORT,
-                      ToastAndroid.CENTER,
-                    );
-                  }}
-                  style={{padding: 5}}>
-                  <CustomText style={styles.text}>L</CustomText>
+                  {isBuffering ? (
+                    <Loading style={{width: 55, height: 45}} />
+                  ) : context.paused ? (
+                    <Icon
+                      width="55"
+                      height="50"
+                      viewBox="0 0 46 60"
+                      name="Play"
+                      style={{alignSelf: 'center'}}
+                    />
+                  ) : (
+                    <Icon
+                      width="50"
+                      height="50"
+                      viewBox="0 0 51 61"
+                      name="Pause"
+                      style={{alignSelf: 'center'}}
+                    />
+                  )}
                 </Pressable>
               </View>
+              <Pressable
+                onPress={() => {
+                  nextSong();
+                }}>
+                <Icon width="50" height="50" viewBox="0 0 52 74" name="Skip" />
+              </Pressable>
+            </View>
+            <View style={styles.bottom_bar}>
+              <Pressable
+                onPress={() => {
+                  const newVal = !context.shuffle;
+                  context.setShuffle(newVal);
+                  ToastAndroid.showWithGravity(
+                    newVal ? 'Shuffle Enabled' : 'Shuffle Disabled',
+                    ToastAndroid.SHORT,
+                    ToastAndroid.CENTER,
+                  );
+                }}
+                style={{padding: 5}}>
+                <CustomText style={styles.text}>S</CustomText>
+              </Pressable>
+              <Pressable
+                onPress={e => {
+                  context.changeLoop();
+                  let newVal = context.loop + 1;
+                  if (newVal == 3) newVal = 0;
+                  ToastAndroid.showWithGravity(
+                    newVal != 0
+                      ? newVal == 1
+                        ? 'Queue Looping'
+                        : 'Song Looping'
+                      : 'Looping Disabled',
+                    ToastAndroid.SHORT,
+                    ToastAndroid.CENTER,
+                  );
+                }}
+                style={{padding: 5}}>
+                <CustomText style={styles.text}>L</CustomText>
+              </Pressable>
             </View>
           </Animated.View>
         </PanGestureHandler>
@@ -554,6 +554,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#0000',
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
   },
   full_player_title: {
     fontSize: 30,
@@ -566,13 +569,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    marginTop: 20,
   },
   full_player_controls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
+    flex: 2,
     paddingHorizontal: 40,
-    paddingVertical: 15,
+  },
+  bottom_bar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    margin: 0,
+    paddingBottom: 30,
   },
 });

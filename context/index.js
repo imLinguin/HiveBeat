@@ -15,9 +15,11 @@ const useStore = create(set => ({
   setPaused: value => set(state => ({paused: value})),
   shuffle: false,
   setShuffle: value => set(state => ({shuffle: value})),
+  playingFrom: {},
+  setPlayingFrom: value => set(state=> ({playingFrom: value})),
   videoQueue: [],
   setVideoQueue: value => set(state => ({videoQueue: value})),
-  loop: 0,
+  loop: 0, // 0 - NOLOOP, 1 - QUEUE, 2 - SONG
   changeLoop: () => set(state => {let next = state.loop+1; if(next==3){next = 0}; return {loop:next}}),
   playlistModalVisible:false,
   switchPlaylistModalVisibility: () => set(state => ({playlistModalVisible: !state.playlistModalVisible}))

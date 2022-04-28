@@ -37,7 +37,9 @@ export default class PlayerScrollItem extends React.Component {
     return (
       <Pressable
         onPress={e => {
-          if (this.isNowPlaying) return;
+          if (this.isNowPlaying) {
+            return;
+          }
           const actualId = this.props.index - 1;
           this.props.context.setIndex(actualId);
           ytmusic
@@ -54,7 +56,9 @@ export default class PlayerScrollItem extends React.Component {
         <PanGestureHandler
           maxPointers={1}
           minOffsetY={-20}
-          enabled={!this.wasNowPlaying && !this.lockedGesture}
+          enabled={
+            !this.wasNowPlaying && !this.lockedGesture && !this.isNowPlaying
+          }
           onGestureEvent={Animated.event(
             [{nativeEvent: {translationY: this.translatePos}}],
             {
