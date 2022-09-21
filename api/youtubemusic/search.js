@@ -40,7 +40,15 @@ function handleMultiTypeSearch(query) {
                         var _a, _b;
                         if ((_a = element.musicResponsiveListItemRenderer) === null || _a === void 0 ? void 0 : _a.navigationEndpoint) {
                             // Album, Artist or Playlist
-                            switch ((_b = element.musicResponsiveListItemRenderer) === null || _b === void 0 ? void 0 : _b.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType) {
+                            const navigationEndpoint = (_b = element.musicResponsiveListItemRenderer) === null || _b === void 0 ? void 0 : _b.navigationEndpoint;
+                            const pageType = navigationEndpoint.watchEndpoint
+                                ? navigationEndpoint.watchEndpoint
+                                    .watchEndpointMusicSupportedConfigs.watchEndpointMusicConfig
+                                    .musicVideoType
+                                : navigationEndpoint.browseEndpoint
+                                    .browseEndpointContextSupportedConfigs
+                                    .browseEndpointContextMusicConfig.pageType;
+                            switch (pageType) {
                                 case models_1.PageType.album:
                                     array.push(parsers_1.parseAlbumItem(element));
                                     break;
@@ -51,6 +59,7 @@ function handleMultiTypeSearch(query) {
                                     array.push(parsers_1.parsePlaylistItem(element, false));
                                     break;
                                 default:
+                                    array.push(parsers_1.parseMusicItem(element));
                                     break;
                             }
                         }

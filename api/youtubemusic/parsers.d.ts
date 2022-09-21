@@ -142,6 +142,10 @@ export declare const parseMusicInPlaylistItem: (content: {
                 };
             };
         }[];
+        playlistItemData: {
+            videoId: string;
+            playlistSetVideoId: string;
+        };
     };
 }) => MusicVideo | null;
 export declare const parseAlbumItem: (content: {

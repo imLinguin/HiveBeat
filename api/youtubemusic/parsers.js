@@ -244,10 +244,7 @@ const parseMusicInPlaylistItem = (content) => {
     var _a, _b;
     let youtubeId;
     try {
-        youtubeId =
-            content.musicResponsiveListItemRenderer.flexColumns[0]
-                .musicResponsiveListItemFlexColumnRenderer.text.runs[0]
-                .navigationEndpoint.watchEndpoint.videoId;
+        youtubeId = content.musicResponsiveListItemRenderer.playlistItemData.videoId;
     }
     catch (err) {
         console.log("Couldn't parse youtube id", err);
